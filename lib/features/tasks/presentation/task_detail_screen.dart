@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 
-class MockRouteItem {
-  const MockRouteItem({
-    required this.name,
-    required this.subtitle,
-  });
-
-  final String name;
-  final String subtitle;
-}
+import '../../../core/localization/language_controller.dart';
+import '../../../core/localization/language_menu_button.dart';
+import '../../inspection/presentation/inspection_route_screen.dart';
+import 'mock_route_item.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   const TaskDetailScreen({
@@ -27,9 +22,14 @@ class TaskDetailScreen extends StatelessWidget {
   final List<MockRouteItem> routeItems;
 
   void _onStartInspection(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Экран осмотра будет добавлен следующим шагом'),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => InspectionRouteScreen(
+          taskTitle: title,
+          objectArea: area,
+          shift: shift,
+          routeItems: routeItems,
+        ),
       ),
     );
   }
@@ -38,10 +38,14 @@ class TaskDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final s = context.strings;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Детали задачи'),
+        title: Text(s.taskDetailAppTitle),
+        actions: const [
+          LanguageMenuButton(),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -64,7 +68,7 @@ class TaskDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Объект',
+                          s.labelObject,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -78,7 +82,7 @@ class TaskDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Статус',
+                          s.labelStatus,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -93,7 +97,7 @@ class TaskDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Смена',
+                          s.labelShift,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -111,7 +115,7 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Маршрут обхода',
+                  s.sectionInspectionRoute,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurface,
                   ),
@@ -155,7 +159,7 @@ class TaskDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: FilledButton(
               onPressed: () => _onStartInspection(context),
-              child: const Text('Начать обход'),
+              child: Text(s.startRoundButton),
             ),
           ),
         ],

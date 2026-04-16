@@ -15,11 +15,12 @@ This repository is a **Stage 1 mobile MVP** for **industrial / energy facility i
 
 ## UI language
 
-All **user-visible** strings (titles, labels, buttons, statuses, placeholders, empty states, dialogs, snackbars, mock/demo copy) must be **Russian**. **Technical identifiers** (classes, files, APIs, variables) stay **English**.
+The app supports **Russian** (default), **Turkish**, and **English** for all **user-visible** text. Strings must come from the **central localization layer** (`lib/core/localization/`, e.g. `AppStrings` / `context.strings`); do **not** hardcode visible copy in widgets when adding features—extend the same structure. **Technical identifiers** (classes, files, APIs, variables) stay **English**.
 
 ## Technical discipline
 
 - Follow **Flutter** best practices; keep structure **simple and extendable**; think **offline-first** and future backend compatibility.
+- **Supabase** (storage + Postgres) is allowed for **inspection reports and media**; reuse the existing small integration pattern; do not duplicate ad-hoc Supabase calls across screens without a focused helper.
 - Do **not** add dependencies, change architecture, routing, or platform/build config **without clear need**; do not introduce heavy abstractions or new state-management stacks early.
 - Do **not** implement **out-of-scope** items from `docs/CASE_CONTEXT.md` (e.g. SCADA/PLC, IoT, digital twin, predictive maintenance, enterprise role matrix, full ERP, in-app web admin, heavy analytics) **unless explicitly requested**.
 

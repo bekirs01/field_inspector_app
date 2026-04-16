@@ -101,22 +101,15 @@ That causes:
 
 # Language Rule
 
-All future visible product UI must be in Russian.
-This includes:
+The app must support **three user-facing languages**:
 
-- page titles
-- navigation labels
-- buttons
-- field labels
-- statuses
-- placeholders
-- section titles
-- empty states
-- dialogs
-- snackbars
-- demo/mock content shown to the user
+- **Russian** (default)
+- **Turkish**
+- **English**
 
-Technical identifiers may remain in English.
+All visible product UI strings (titles, labels, buttons, statuses, placeholders, section titles, empty states, dialogs, snackbars, and demo/mock copy shown to the user) must be provided through the **central in-app localization layer** (`lib/core/localization/`, e.g. `AppStrings` / `stringsFor` / `context.strings`). **Do not hardcode** user-visible text directly in feature widgets for new work; add or extend entries in that system instead.
+
+Technical identifiers (class names, file names, APIs, variables) remain in **English**.
 
 # Product Principles
 
@@ -165,9 +158,9 @@ The future app should eventually contain these core screens:
 11. Review / submit screen
 12. Simple offline / sync status visibility
 
-# Suggested Visible Russian Labels
+# Suggested Visible Labels (Russian examples)
 
-Use Russian for UI in future implementation. Example vocabulary:
+Russian is the default language; the same concepts should exist for Turkish and English in the localization source. Example Russian vocabulary:
 
 - Задачи
 - Маршрут обхода
@@ -228,6 +221,7 @@ For future implementation:
 - keep future backend integration possible
 - avoid unnecessary heavy abstractions too early
 - do not introduce major state management or architecture shifts without clear need
+- **Supabase** may be used for **inspection report persistence** and **real media uploads** (e.g. photos, voice notes) in Stage 1; keep storage paths, table writes, and metadata in small reusable helpers, and keep the multilingual UI rule
 
 # Out of Scope for Stage 1
 
@@ -273,5 +267,5 @@ Every next implementation request should follow this order:
 1. re-read this case context
 2. confirm alignment with Stage 1 scope
 3. implement the smallest clean useful slice
-4. preserve Russian UI language
+4. preserve multilingual UI via the centralized localization system (Russian default; Turkish and English supported)
 5. avoid unrelated modifications

@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photos are attached to inspection reports.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone is used for defect voice notes.</string>
 </dict>
 </plist>

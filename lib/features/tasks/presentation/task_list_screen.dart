@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
+import '../../../core/localization/language_controller.dart';
+import '../../../core/localization/language_menu_button.dart';
+import 'mock_route_item.dart';
 import 'task_detail_screen.dart';
 
 class _MockTask {
@@ -14,105 +18,72 @@ class _MockTask {
   final String status;
 }
 
-const List<_MockTask> _mockTasks = [
-  _MockTask(
-    title: 'Обход котельной №1',
-    area: 'Котельная, зона А',
-    status: 'В процессе',
-  ),
-  _MockTask(
-    title: 'Плановый осмотр трансформаторной',
-    area: 'ТП-12',
-    status: 'Ожидает',
-  ),
-  _MockTask(
-    title: 'Обход насосной станции',
-    area: 'Насосная — корпус 2',
-    status: 'Выполнено',
-  ),
-];
+List<_MockTask> _mockTasksFromStrings(AppStrings s) {
+  return [
+    _MockTask(
+      title: s.mockTask0Title,
+      area: s.mockTask0Area,
+      status: s.statusInProgress,
+    ),
+    _MockTask(
+      title: s.mockTask1Title,
+      area: s.mockTask1Area,
+      status: s.statusPending,
+    ),
+    _MockTask(
+      title: s.mockTask2Title,
+      area: s.mockTask2Area,
+      status: s.statusCompleted,
+    ),
+  ];
+}
 
-const List<String> _mockShifts = [
-  'Смена А, 16.04.2026',
-  'Смена Б, 16.04.2026',
-  'Смена А, 15.04.2026',
-];
+List<String> _mockShifts(AppStrings s) {
+  return [s.mockShift0, s.mockShift1, s.mockShift2];
+}
 
-List<MockRouteItem> _routeItemsForIndex(int index) {
+List<MockRouteItem> _routeItemsForIndex(int index, AppStrings s) {
   switch (index) {
     case 0:
-      return const [
-        MockRouteItem(
-          name: 'Насос Н-12',
-          subtitle: 'Котельная, линия подачи',
-        ),
-        MockRouteItem(
-          name: 'Клапан К-3',
-          subtitle: 'Зона А, узел регулировки',
-        ),
-        MockRouteItem(
-          name: 'Датчик температуры T-7',
-          subtitle: 'Коллектор горячей воды',
-        ),
-        MockRouteItem(
-          name: 'Щит управления ШУ-2',
-          subtitle: 'Помещение автоматики',
-        ),
+      return [
+        MockRouteItem(name: s.r0i0n, subtitle: s.r0i0s),
+        MockRouteItem(name: s.r0i1n, subtitle: s.r0i1s),
+        MockRouteItem(name: s.r0i2n, subtitle: s.r0i2s),
+        MockRouteItem(name: s.r0i3n, subtitle: s.r0i3s),
       ];
     case 1:
-      return const [
-        MockRouteItem(
-          name: 'Силовой трансформатор Т-1',
-          subtitle: 'ТП-12, камера 1',
-        ),
-        MockRouteItem(
-          name: 'Разъединитель Р-5',
-          subtitle: 'Ячейка ввода',
-        ),
-        MockRouteItem(
-          name: 'Датчик температуры T-7',
-          subtitle: 'Секция шин',
-        ),
-        MockRouteItem(
-          name: 'Щит управления ШУ-2',
-          subtitle: 'Пульт оператора',
-        ),
-        MockRouteItem(
-          name: 'Клапан К-3',
-          subtitle: 'Пожарный сегмент',
-        ),
+      return [
+        MockRouteItem(name: s.r1i0n, subtitle: s.r1i0s),
+        MockRouteItem(name: s.r1i1n, subtitle: s.r1i1s),
+        MockRouteItem(name: s.r1i2n, subtitle: s.r1i2s),
+        MockRouteItem(name: s.r1i3n, subtitle: s.r1i3s),
+        MockRouteItem(name: s.r1i4n, subtitle: s.r1i4s),
       ];
     default:
-      return const [
-        MockRouteItem(
-          name: 'Насос Н-12',
-          subtitle: 'Насосная, агрегат 1',
-        ),
-        MockRouteItem(
-          name: 'Клапан К-3',
-          subtitle: 'Обвязка напорная',
-        ),
-        MockRouteItem(
-          name: 'Датчик температуры T-7',
-          subtitle: 'Резервуар, датчик погружной',
-        ),
-        MockRouteItem(
-          name: 'Щит управления ШУ-2',
-          subtitle: 'Корпус 2, щитовая',
-        ),
+      return [
+        MockRouteItem(name: s.r2i0n, subtitle: s.r2i0s),
+        MockRouteItem(name: s.r2i1n, subtitle: s.r2i1s),
+        MockRouteItem(name: s.r2i2n, subtitle: s.r2i2s),
+        MockRouteItem(name: s.r2i3n, subtitle: s.r2i3s),
       ];
   }
 }
 
-void _openTaskDetail(BuildContext context, _MockTask task, int index) {
+void _openTaskDetail(
+  BuildContext context,
+  _MockTask task,
+  int index,
+  List<String> shifts,
+  List<MockRouteItem> routeItems,
+) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (context) => TaskDetailScreen(
         title: task.title,
         area: task.area,
         status: task.status,
-        shift: _mockShifts[index],
-        routeItems: _routeItemsForIndex(index),
+        shift: shifts[index],
+        routeItems: routeItems,
       ),
     ),
   );
@@ -125,22 +96,28 @@ class TaskListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final s = context.strings;
+    final tasks = _mockTasksFromStrings(s);
+    final shifts = _mockShifts(s);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Задачи'),
+        title: Text(s.tasksAppTitle),
+        actions: const [
+          LanguageMenuButton(),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           Text(
-            'Назначенные обходы',
+            s.tasksSectionAssignedRounds,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
-          ..._mockTasks.asMap().entries.map(
+          ...tasks.asMap().entries.map(
             (entry) {
               final index = entry.key;
               final task = entry.value;
@@ -149,7 +126,13 @@ class TaskListScreen extends StatelessWidget {
                 child: Card(
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
-                    onTap: () => _openTaskDetail(context, task, index),
+                    onTap: () => _openTaskDetail(
+                      context,
+                      task,
+                      index,
+                      shifts,
+                      _routeItemsForIndex(index, s),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(

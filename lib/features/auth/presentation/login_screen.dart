@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/language_controller.dart';
+import '../../../core/localization/language_menu_button.dart';
 import '../../tasks/presentation/task_list_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -17,6 +19,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final s = context.strings;
 
     return Scaffold(
       body: SafeArea(
@@ -25,23 +28,29 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  LanguageMenuButton(),
+                ],
+              ),
               const Spacer(flex: 2),
               Text(
-                'Мобильный обходчик',
+                s.loginTitle,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Контроль оборудования и обходы',
+                s.loginSubtitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 20),
               Text(
-                'Демо-доступ для инспектора',
+                s.loginDescription,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -49,7 +58,7 @@ class LoginScreen extends StatelessWidget {
               const Spacer(flex: 3),
               FilledButton(
                 onPressed: () => _openTaskList(context),
-                child: const Text('Войти'),
+                child: Text(s.loginButton),
               ),
               const SizedBox(height: 32),
             ],
