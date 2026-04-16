@@ -1,4 +1,5 @@
 import 'app_language.dart';
+import 'demo_task_public_state.dart';
 
 class AppStrings {
   const AppStrings({
@@ -6,7 +7,7 @@ class AppStrings {
     required this.loginTitle,
     required this.loginSubtitle,
     required this.loginDescription,
-    required this.loginButton,
+    required this.loginContinueToTasks,
     required this.tasksAppTitle,
     required this.tasksSectionAssignedRounds,
     required this.statusInProgress,
@@ -131,13 +132,69 @@ class AppStrings {
     required this.errorUnknownSave,
     required this.errorPermissionDenied,
     required this.completeObjectInProgress,
+    required this.appMaterialTitle,
+    required this.inspectionTaskSummaryTitle,
+    required this.sectionSummaryResults,
+    required this.labelSummaryTotalObjects,
+    required this.labelSummaryCompletedOk,
+    required this.labelSummaryWithIssues,
+    required this.summaryBackToTasksButton,
+    required this.statusCompletedWithIssues,
+    required this.taskListProgressNotStarted,
+    required this.taskListProgressActive,
+    required this.taskListProgressCompletedFull,
+    required this.taskListProgressCompletedFullWithIssues,
+    required this.taskOpenResultButton,
+    required this.completedReportAppTitle,
+    required this.sectionCompletedReportInspectionSummary,
+    required this.labelReportPhotoCount,
+    required this.labelReportAudioCount,
+    required this.labelReportObjectsWithDefects,
+    required this.taskDetailSectionOutcome,
+    required this.labelFinalTaskState,
+    required this.completedReportNotAvailable,
+    required this.labelDueAt,
+    required this.tasksUntitledTask,
+    required this.tasksScheduleNotSpecified,
+    required this.tasksLoading,
+    required this.tasksLoadFailed,
+    required this.tasksShowingDemoFallback,
+    required this.tasksNoWorkerIdentity,
+    required this.tasksSupabaseNotReady,
+    required this.tasksNoAssignments,
+    required this.tasksSectionDemoTasks,
+    required this.tasksDemoSectionDebugHint,
+    required this.workerDevWorkerIdBadge,
+    required this.workerProfileNotInDatabase,
+    required this.sectionTaskInstructions,
+    required this.tasksRetry,
+    required this.workerSectionTitle,
+    required this.workerProfileNameLabel,
+    required this.workerProfileCodeLabel,
+    required this.taskRequestScreenTitle,
+    required this.taskRequestActionTooltip,
+    required this.labelRequestTitle,
+    required this.hintRequestTitle,
+    required this.labelRequestSiteName,
+    required this.hintRequestSiteName,
+    required this.labelRequestAreaName,
+    required this.hintRequestAreaName,
+    required this.labelRequestDescription,
+    required this.hintRequestDescription,
+    required this.labelRequestPriority,
+    required this.taskRequestSubmitButton,
+    required this.taskRequestSuccess,
+    required this.taskRequestErrorNoWorker,
+    required this.taskRequestErrorNotReady,
+    required this.taskRequestErrorInsert,
+    required this.labelTaskDuration,
   });
 
   final AppLanguage language;
   final String loginTitle;
   final String loginSubtitle;
   final String loginDescription;
-  final String loginButton;
+  final String loginContinueToTasks;
   final String tasksAppTitle;
   final String tasksSectionAssignedRounds;
   final String statusInProgress;
@@ -262,6 +319,106 @@ class AppStrings {
   final String errorUnknownSave;
   final String errorPermissionDenied;
   final String completeObjectInProgress;
+  final String appMaterialTitle;
+  final String inspectionTaskSummaryTitle;
+  final String sectionSummaryResults;
+  final String labelSummaryTotalObjects;
+  final String labelSummaryCompletedOk;
+  final String labelSummaryWithIssues;
+  final String summaryBackToTasksButton;
+  final String statusCompletedWithIssues;
+  final String taskListProgressNotStarted;
+  final String taskListProgressActive;
+  final String taskListProgressCompletedFull;
+  final String taskListProgressCompletedFullWithIssues;
+  final String taskOpenResultButton;
+  final String completedReportAppTitle;
+  final String sectionCompletedReportInspectionSummary;
+  final String labelReportPhotoCount;
+  final String labelReportAudioCount;
+  final String labelReportObjectsWithDefects;
+  final String taskDetailSectionOutcome;
+  final String labelFinalTaskState;
+  final String completedReportNotAvailable;
+  final String labelDueAt;
+  final String tasksUntitledTask;
+  final String tasksScheduleNotSpecified;
+  final String tasksLoading;
+  final String tasksLoadFailed;
+  final String tasksShowingDemoFallback;
+  final String tasksNoWorkerIdentity;
+  final String tasksSupabaseNotReady;
+  final String tasksNoAssignments;
+  final String tasksSectionDemoTasks;
+  final String tasksDemoSectionDebugHint;
+  final String workerDevWorkerIdBadge;
+  final String workerProfileNotInDatabase;
+  final String sectionTaskInstructions;
+  final String tasksRetry;
+  final String workerSectionTitle;
+  final String workerProfileNameLabel;
+  final String workerProfileCodeLabel;
+  final String taskRequestScreenTitle;
+  final String taskRequestActionTooltip;
+  final String labelRequestTitle;
+  final String hintRequestTitle;
+  final String labelRequestSiteName;
+  final String hintRequestSiteName;
+  final String labelRequestAreaName;
+  final String hintRequestAreaName;
+  final String labelRequestDescription;
+  final String hintRequestDescription;
+  final String labelRequestPriority;
+  final String taskRequestSubmitButton;
+  final String taskRequestSuccess;
+  final String taskRequestErrorNoWorker;
+  final String taskRequestErrorNotReady;
+  final String taskRequestErrorInsert;
+  final String labelTaskDuration;
+
+  String taskDurationMinutesValue(int minutes) {
+    switch (language) {
+      case AppLanguage.ru:
+        return '$minutes мин';
+      case AppLanguage.tr:
+        return '$minutes dk';
+      case AppLanguage.en:
+        return '$minutes min';
+    }
+  }
+
+  String inspectionTaskRemoteStatusCaption(String? raw) {
+    return taskStateLabel(demoTaskStateFromRemoteInspectionStatus(raw));
+  }
+
+  String taskStateLabel(DemoTaskPublicState state) {
+    switch (state) {
+      case DemoTaskPublicState.pending:
+        return statusPending;
+      case DemoTaskPublicState.inProgress:
+        return statusInProgress;
+      case DemoTaskPublicState.completed:
+        return statusCompleted;
+      case DemoTaskPublicState.completedWithIssues:
+        return statusCompletedWithIssues;
+    }
+  }
+
+  String taskListProgressLine({
+    required DemoTaskPublicState state,
+    required int routeTotal,
+  }) {
+    switch (state) {
+      case DemoTaskPublicState.pending:
+        return '$taskListProgressNotStarted · $routeTotal';
+      case DemoTaskPublicState.inProgress:
+        return '$taskListProgressActive · $routeTotal';
+      case DemoTaskPublicState.completed:
+        return taskListProgressCompletedFull;
+      case DemoTaskPublicState.completedWithIssues:
+        return taskListProgressCompletedFullWithIssues;
+    }
+  }
 
   String progressObjectsChecked(int completed, int total) {
     switch (language) {
@@ -301,8 +458,9 @@ const AppStrings _ru = AppStrings(
   language: AppLanguage.ru,
   loginTitle: 'Мобильный обходчик',
   loginSubtitle: 'Контроль оборудования и обходы',
-  loginDescription: 'Демо-доступ для инспектора',
-  loginButton: 'Войти',
+  loginDescription:
+      'Режим разработки: полноценный вход исполнителя ещё не подключён. Список назначенных задач появится после настройки учётной записи и Supabase.',
+  loginContinueToTasks: 'Перейти к задачам',
   tasksAppTitle: 'Задачи',
   tasksSectionAssignedRounds: 'Назначенные обходы',
   statusInProgress: 'В процессе',
@@ -435,16 +593,75 @@ const AppStrings _ru = AppStrings(
   errorUnknownSave: 'Неизвестная ошибка',
   errorPermissionDenied: 'Недостаточно разрешений',
   completeObjectInProgress: 'Отправка…',
+  appMaterialTitle: 'Обход оборудования',
+  inspectionTaskSummaryTitle: 'Обход завершён',
+  sectionSummaryResults: 'Итоги маршрута',
+  labelSummaryTotalObjects: 'Всего объектов',
+  labelSummaryCompletedOk: 'Завершено без замечаний',
+  labelSummaryWithIssues: 'С замечаниями',
+  summaryBackToTasksButton: 'Вернуться к задачам',
+  statusCompletedWithIssues: 'Завершено с замечаниями',
+  taskListProgressNotStarted: 'Не начато',
+  taskListProgressActive: 'В процессе',
+  taskListProgressCompletedFull: 'Завершено: 100% (все объекты проверены)',
+  taskListProgressCompletedFullWithIssues:
+      'Завершено: 100% (есть замечания по маршруту)',
+  taskOpenResultButton: 'Открыть результат',
+  completedReportAppTitle: 'Результат обхода',
+  sectionCompletedReportInspectionSummary: 'Сводка осмотра',
+  labelReportPhotoCount: 'Фото',
+  labelReportAudioCount: 'Аудио',
+  labelReportObjectsWithDefects: 'Объектов с дефектом',
+  taskDetailSectionOutcome: 'Итог обхода',
+  labelFinalTaskState: 'Итоговый статус',
+  completedReportNotAvailable: 'Результат обхода недоступен',
+  labelDueAt: 'Срок',
+  tasksUntitledTask: 'Задача без названия',
+  tasksScheduleNotSpecified: 'Не указано',
+  tasksLoading: 'Загрузка задач…',
+  tasksLoadFailed: 'Не удалось загрузить задачи',
+  tasksShowingDemoFallback: 'Показаны демо-задачи (нет назначений или ошибка сети)',
+  tasksNoWorkerIdentity: 'Нет учётной записи исполнителя. Войдите или задайте DEV_WORKER_USER_ID',
+  tasksSupabaseNotReady: 'Подключение к серверу недоступно',
+  tasksNoAssignments: 'Нет назначенных задач',
+  tasksSectionDemoTasks: 'Демо-задачи',
+  tasksDemoSectionDebugHint:
+      'Только в сборке отладки: пример данных, не реальные назначения.',
+  workerDevWorkerIdBadge: 'Режим DEV_WORKER_USER_ID',
+  workerProfileNotInDatabase: 'Профиль в базе не найден',
+  sectionTaskInstructions: 'Инструкции',
+  tasksRetry: 'Повторить',
+  workerSectionTitle: 'Исполнитель',
+  workerProfileNameLabel: 'ФИО',
+  workerProfileCodeLabel: 'Табельный номер',
+  taskRequestScreenTitle: 'Запрос на задачу',
+  taskRequestActionTooltip: 'Запросить задачу',
+  labelRequestTitle: 'Название',
+  hintRequestTitle: 'Кратко опишите работу',
+  labelRequestSiteName: 'Объект / площадка',
+  hintRequestSiteName: 'Например, цех, станция',
+  labelRequestAreaName: 'Зона / участок',
+  hintRequestAreaName: 'Например, линия, корпус',
+  labelRequestDescription: 'Описание',
+  hintRequestDescription: 'Что нужно проверить или выполнить',
+  labelRequestPriority: 'Приоритет',
+  taskRequestSubmitButton: 'Отправить на согласование',
+  taskRequestSuccess: 'Запрос отправлен руководителю',
+  taskRequestErrorNoWorker: 'Нет учётной записи исполнителя',
+  taskRequestErrorNotReady: 'Сервер недоступен',
+  taskRequestErrorInsert: 'Не удалось отправить запрос',
+  labelTaskDuration: 'Длительность выполнения',
 );
 
 const AppStrings _tr = AppStrings(
   language: AppLanguage.tr,
   loginTitle: 'Mobil saha denetçisi',
   loginSubtitle: 'Ekipman kontrolü ve turlar',
-  loginDescription: 'Denetçi için demo erişim',
-  loginButton: 'Giriş',
+  loginDescription:
+      'Geliştirme modu: tam işçi oturumu henüz yok. Atanan görevler, hesap ve Supabase yapılandırılınca listelenir.',
+  loginContinueToTasks: 'Görevlere devam et',
   tasksAppTitle: 'Görevler',
-  tasksSectionAssignedRounds: 'Atanan turlar',
+  tasksSectionAssignedRounds: 'Atanmış görevler',
   statusInProgress: 'Devam ediyor',
   statusPending: 'Bekliyor',
   statusCompleted: 'Tamamlandı',
@@ -575,16 +792,75 @@ const AppStrings _tr = AppStrings(
   errorUnknownSave: 'Bilinmeyen hata',
   errorPermissionDenied: 'İzin reddedildi',
   completeObjectInProgress: 'Gönderiliyor…',
+  appMaterialTitle: 'Saha denetimi',
+  inspectionTaskSummaryTitle: 'Tur tamamlandı',
+  sectionSummaryResults: 'Güzergâh özeti',
+  labelSummaryTotalObjects: 'Toplam nesne',
+  labelSummaryCompletedOk: 'Sorunsuz tamamlandı',
+  labelSummaryWithIssues: 'Sorunlu',
+  summaryBackToTasksButton: 'Görevlere dön',
+  statusCompletedWithIssues: 'Sorunlarla tamamlandı',
+  taskListProgressNotStarted: 'Başlanmadı',
+  taskListProgressActive: 'Devam ediyor',
+  taskListProgressCompletedFull: 'Tamamlandı: %100 (tüm nesneler kontrol edildi)',
+  taskListProgressCompletedFullWithIssues:
+      'Tamamlandı: %100 (güzergâhta sorun var)',
+  taskOpenResultButton: 'Sonucu aç',
+  completedReportAppTitle: 'Tur sonucu',
+  sectionCompletedReportInspectionSummary: 'Kontrol özeti',
+  labelReportPhotoCount: 'Fotoğraf',
+  labelReportAudioCount: 'Ses',
+  labelReportObjectsWithDefects: 'Arızalı nesne',
+  taskDetailSectionOutcome: 'Tur özeti',
+  labelFinalTaskState: 'Son durum',
+  completedReportNotAvailable: 'Tur sonucu yok',
+  labelDueAt: 'Son tarih',
+  tasksUntitledTask: 'Adsız görev',
+  tasksScheduleNotSpecified: 'Belirtilmedi',
+  tasksLoading: 'Görevler yükleniyor…',
+  tasksLoadFailed: 'Görevler yüklenemedi',
+  tasksShowingDemoFallback: 'Demo görevler gösteriliyor (atama yok veya ağ hatası)',
+  tasksNoWorkerIdentity: 'İşçi oturumu yok. Giriş yapın veya DEV_WORKER_USER_ID ayarlayın',
+  tasksSupabaseNotReady: 'Sunucu bağlantısı hazır değil',
+  tasksNoAssignments: 'Atanan görev yok',
+  tasksSectionDemoTasks: 'Demo görevler',
+  tasksDemoSectionDebugHint:
+      'Yalnızca hata ayıklama derlemesi: örnek veri, gerçek atama değil.',
+  workerDevWorkerIdBadge: 'DEV_WORKER_USER_ID modu',
+  workerProfileNotInDatabase: 'Veritabanında profil yok',
+  sectionTaskInstructions: 'Talimatlar',
+  tasksRetry: 'Yenile',
+  workerSectionTitle: 'İşçi',
+  workerProfileNameLabel: 'Ad soyad',
+  workerProfileCodeLabel: 'Sicil no',
+  taskRequestScreenTitle: 'Görev talebi',
+  taskRequestActionTooltip: 'Görev talep et',
+  labelRequestTitle: 'Başlık',
+  hintRequestTitle: 'İşi kısaca yazın',
+  labelRequestSiteName: 'Tesis / saha',
+  hintRequestSiteName: 'Örn. atölye, istasyon',
+  labelRequestAreaName: 'Bölge',
+  hintRequestAreaName: 'Örn. hat, bina',
+  labelRequestDescription: 'Açıklama',
+  hintRequestDescription: 'Ne kontrol veya iş yapılacak',
+  labelRequestPriority: 'Öncelik',
+  taskRequestSubmitButton: 'Onaya gönder',
+  taskRequestSuccess: 'Talep yöneticiye gönderildi',
+  taskRequestErrorNoWorker: 'İşçi oturumu yok',
+  taskRequestErrorNotReady: 'Sunucu hazır değil',
+  taskRequestErrorInsert: 'Talep gönderilemedi',
+  labelTaskDuration: 'Gerçekleşme süresi',
 );
 
 const AppStrings _en = AppStrings(
   language: AppLanguage.en,
   loginTitle: 'Mobile field inspector',
   loginSubtitle: 'Equipment control and rounds',
-  loginDescription: 'Demo access for inspector',
-  loginButton: 'Sign in',
+  loginDescription:
+      'Development mode: full worker sign-in is not wired yet. Assigned tasks appear after the worker account and Supabase are configured.',
+  loginContinueToTasks: 'Continue to tasks',
   tasksAppTitle: 'Tasks',
-  tasksSectionAssignedRounds: 'Assigned rounds',
+  tasksSectionAssignedRounds: 'Assigned tasks',
   statusInProgress: 'In progress',
   statusPending: 'Pending',
   statusCompleted: 'Completed',
@@ -715,4 +991,62 @@ const AppStrings _en = AppStrings(
   errorUnknownSave: 'Unknown error',
   errorPermissionDenied: 'Permission denied',
   completeObjectInProgress: 'Submitting…',
+  appMaterialTitle: 'Field inspection',
+  inspectionTaskSummaryTitle: 'Round completed',
+  sectionSummaryResults: 'Route results',
+  labelSummaryTotalObjects: 'Total objects',
+  labelSummaryCompletedOk: 'Completed (OK)',
+  labelSummaryWithIssues: 'With issues',
+  summaryBackToTasksButton: 'Back to tasks',
+  statusCompletedWithIssues: 'Completed with issues',
+  taskListProgressNotStarted: 'Not started',
+  taskListProgressActive: 'In progress',
+  taskListProgressCompletedFull: 'Completed: 100% (all objects checked)',
+  taskListProgressCompletedFullWithIssues:
+      'Completed: 100% (issues on the route)',
+  taskOpenResultButton: 'Open result',
+  completedReportAppTitle: 'Round result',
+  sectionCompletedReportInspectionSummary: 'Inspection summary',
+  labelReportPhotoCount: 'Photos',
+  labelReportAudioCount: 'Audio',
+  labelReportObjectsWithDefects: 'Objects with defect',
+  taskDetailSectionOutcome: 'Round outcome',
+  labelFinalTaskState: 'Final status',
+  completedReportNotAvailable: 'Round result is not available',
+  labelDueAt: 'Due',
+  tasksUntitledTask: 'Untitled task',
+  tasksScheduleNotSpecified: 'Not specified',
+  tasksLoading: 'Loading tasks…',
+  tasksLoadFailed: 'Could not load tasks',
+  tasksShowingDemoFallback: 'Showing demo tasks (no assignments or load error)',
+  tasksNoWorkerIdentity: 'No worker session. Sign in or set DEV_WORKER_USER_ID',
+  tasksSupabaseNotReady: 'Server connection not ready',
+  tasksNoAssignments: 'No assigned tasks',
+  tasksSectionDemoTasks: 'Demo tasks',
+  tasksDemoSectionDebugHint:
+      'Debug build only: sample data, not real assignments.',
+  workerDevWorkerIdBadge: 'DEV_WORKER_USER_ID mode',
+  workerProfileNotInDatabase: 'No profile row in database',
+  sectionTaskInstructions: 'Instructions',
+  tasksRetry: 'Retry',
+  workerSectionTitle: 'Worker',
+  workerProfileNameLabel: 'Name',
+  workerProfileCodeLabel: 'Employee ID',
+  taskRequestScreenTitle: 'Task request',
+  taskRequestActionTooltip: 'Request a task',
+  labelRequestTitle: 'Title',
+  hintRequestTitle: 'Short summary of the work',
+  labelRequestSiteName: 'Site',
+  hintRequestSiteName: 'e.g. shop, station',
+  labelRequestAreaName: 'Area',
+  hintRequestAreaName: 'e.g. line, building',
+  labelRequestDescription: 'Description',
+  hintRequestDescription: 'What to inspect or do',
+  labelRequestPriority: 'Priority',
+  taskRequestSubmitButton: 'Submit for approval',
+  taskRequestSuccess: 'Request sent to supervisor',
+  taskRequestErrorNoWorker: 'No worker session',
+  taskRequestErrorNotReady: 'Server not ready',
+  taskRequestErrorInsert: 'Could not submit request',
+  labelTaskDuration: 'Time to complete',
 );

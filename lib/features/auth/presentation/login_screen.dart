@@ -58,7 +58,7 @@ class LoginScreen extends StatelessWidget {
               const Spacer(flex: 3),
               FilledButton(
                 onPressed: () => _openTaskList(context),
-                child: Text(s.loginButton),
+                child: Text(s.loginContinueToTasks),
               ),
               const SizedBox(height: 32),
             ],

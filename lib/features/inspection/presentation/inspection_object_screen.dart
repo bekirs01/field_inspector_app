@@ -9,26 +9,20 @@ import 'package:record/record.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
+import '../../../core/util/mock_uuid.dart';
+import '../../tasks/data/inspector_task_session.dart';
 import '../data/inspection_save_failure.dart';
 import '../data/inspection_supabase_service.dart';
 
 class InspectionObjectScreen extends StatefulWidget {
   const InspectionObjectScreen({
     super.key,
-    required this.equipmentName,
-    required this.zone,
-    required this.taskTitle,
-    required this.routeIndex,
-    required this.taskId,
-    required this.equipmentId,
+    required this.session,
+    required this.routeItemIndex,
   });
 
-  final String equipmentName;
-  final String zone;
-  final String taskTitle;
-  final int routeIndex;
-  final String taskId;
-  final String equipmentId;
+  final InspectorTaskSession session;
+  final int routeItemIndex;
 
   @override
   State<InspectionObjectScreen> createState() => _InspectionObjectScreenState();
@@ -37,11 +31,15 @@ class InspectionObjectScreen extends StatefulWidget {
 class InspectionObjectResult {
   const InspectionObjectResult({
     required this.hadDefect,
-    required this.routeIndex,
+    required this.routeItemIndex,
+    this.photoCount = 0,
+    this.audioCount = 0,
   });
 
   final bool hadDefect;
-  final int routeIndex;
+  final int routeItemIndex;
+  final int photoCount;
+  final int audioCount;
 }
 
 class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
@@ -85,6 +83,26 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     decimal: true,
     signed: false,
   );
+
+  String _taskIdForSave() {
+    if (widget.session.isRemote &&
+        (widget.session.remoteTaskId ?? '').isNotEmpty) {
+      return widget.session.remoteTaskId!;
+    }
+    final m = widget.session.mockTaskIndex ?? 0;
+    return mockUuidFromSeed('task|$m');
+  }
+
+  String _equipmentIdForSave() {
+    final items = widget.session.items;
+    if (widget.routeItemIndex >= 0 &&
+        widget.routeItemIndex < items.length &&
+        items[widget.routeItemIndex].id.isNotEmpty) {
+      return items[widget.routeItemIndex].id;
+    }
+    final m = widget.session.mockTaskIndex ?? 0;
+    return mockUuidFromSeed('equip|$m|${widget.routeItemIndex}');
+  }
 
   @override
   void dispose() {
@@ -201,7 +219,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       }
       final dir = await getTemporaryDirectory();
       final path =
-          '${dir.path}/voice_${widget.routeIndex}_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          '${dir.path}/voice_${widget.routeItemIndex}_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _voiceRecorder.start(
         const RecordConfig(encoder: AudioEncoder.aacLc),
         path: path,
@@ -334,14 +352,16 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       'voicePathSet=$hasVoicePath',
     );
 
-    if (widget.taskId.trim().isEmpty) {
+    final taskId = _taskIdForSave();
+    final equipmentId = _equipmentIdForSave();
+    if (taskId.trim().isEmpty) {
       debugPrint('[InspectionSubmit] FAIL step=2_validateIds missing taskId');
       messenger.showSnackBar(
         SnackBar(content: Text(s.errorMissingTaskId)),
       );
       return;
     }
-    if (widget.equipmentId.trim().isEmpty) {
+    if (equipmentId.trim().isEmpty) {
       debugPrint(
         '[InspectionSubmit] FAIL step=2_validateIds missing equipmentId',
       );
@@ -352,8 +372,8 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     }
 
     debugPrint(
-      '[InspectionSubmit] step=2_validateIds ok taskLen=${widget.taskId.length} '
-      'equipmentLen=${widget.equipmentId.length}',
+      '[InspectionSubmit] step=2_validateIds ok taskLen=${taskId.length} '
+      'equipmentLen=${equipmentId.length}',
     );
 
     if (_defectFound && _isVoiceRecording) {
@@ -478,8 +498,8 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     final sessionPresent =
         InspectionSupabaseService.authSessionPresent();
     debugPrint(
-      '[InspectionSubmit] preRemoteSummary taskId=${widget.taskId} '
-      'equipmentId=${widget.equipmentId} draftRevision=$_localDraftRevision '
+      '[InspectionSubmit] preRemoteSummary taskId=$taskId '
+      'equipmentId=$equipmentId draftRevision=$_localDraftRevision '
       'checklist=$checklistForDb measurements=$measurementsJson '
       'defect={found:$_defectFound, description:$defectDescription, priority:${_defectFound ? defectPriority : "low"}} '
       'photoCount=${photos.length} audioPath=${audioPathForUpload ?? "null"} '
@@ -490,8 +510,8 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     try {
       debugPrint('[InspectionSubmit] remoteFlowStart completeObjectButton');
       await InspectionSupabaseService.instance.saveInspectionCompletion(
-        taskId: widget.taskId,
-        equipmentId: widget.equipmentId,
+        taskId: taskId,
+        equipmentId: equipmentId,
         checklist: checklistForDb,
         measurements: measurementsJson,
         comment: _noteController.text,
@@ -503,7 +523,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       );
       if (!context.mounted) return;
       debugPrint(
-        '[InspectionSubmit] step=12_updateRouteProgress ok routeIndex=${widget.routeIndex}',
+        '[InspectionSubmit] step=12_updateRouteProgress ok routeItemIndex=${widget.routeItemIndex}',
       );
       messenger.showSnackBar(
         SnackBar(content: Text(s.snackbarUploadSuccess)),
@@ -511,7 +531,9 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       Navigator.of(context).pop(
         InspectionObjectResult(
           hadDefect: _defectFound,
-          routeIndex: widget.routeIndex,
+          routeItemIndex: widget.routeItemIndex,
+          photoCount: photos.length,
+          audioCount: audioPathForUpload != null ? 1 : 0,
         ),
       );
     } on InspectionSaveException catch (e, st) {
@@ -654,6 +676,9 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     final colorScheme = theme.colorScheme;
     final s = context.strings;
     final labels = _checklistLabels(s);
+    final items = widget.session.items;
+    final item = items[widget.routeItemIndex];
+    final taskTitle = widget.session.title;
 
     return Scaffold(
       appBar: AppBar(
@@ -683,7 +708,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.equipmentName,
+                          item.equipmentName,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: colorScheme.onSurface,
                           ),
@@ -697,7 +722,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.zone,
+                          item.equipmentLocation,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onSurface,
                           ),
@@ -711,7 +736,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.taskTitle,
+                          taskTitle,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onSurface,
                           ),

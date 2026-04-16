@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
-import '../../../core/util/mock_uuid.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
-import '../../tasks/presentation/mock_route_item.dart';
+import '../../tasks/data/assigned_inspection_task_service.dart';
+import '../../tasks/data/demo_task_completion_store.dart';
+import '../../tasks/data/inspector_task_session.dart';
 import 'inspection_object_screen.dart';
+import 'inspection_task_summary_screen.dart';
 
 enum _RouteSlotState {
   pending,
@@ -16,16 +20,10 @@ enum _RouteSlotState {
 class InspectionRouteScreen extends StatefulWidget {
   const InspectionRouteScreen({
     super.key,
-    required this.taskTitle,
-    required this.objectArea,
-    required this.shift,
-    required this.routeItems,
+    required this.session,
   });
 
-  final String taskTitle;
-  final String objectArea;
-  final String shift;
-  final List<MockRouteItem> routeItems;
+  final InspectorTaskSession session;
 
   @override
   State<InspectionRouteScreen> createState() => _InspectionRouteScreenState();
@@ -33,20 +31,25 @@ class InspectionRouteScreen extends StatefulWidget {
 
 class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
   late List<_RouteSlotState> _slotStates;
+  int _photosRunningTotal = 0;
+  int _audioRunningTotal = 0;
 
   @override
   void initState() {
     super.initState();
+    final key = widget.session.storeKey;
+    DemoTaskCompletionStore.instance.markRouteStarted(key);
+    unawaited(
+      AssignedInspectionTaskService.markAssignmentStarted(
+        assignmentId: widget.session.remoteAssignmentId,
+        remoteTaskId: widget.session.remoteTaskId,
+      ),
+    );
     _slotStates = List<_RouteSlotState>.filled(
-      widget.routeItems.length,
+      widget.session.routeItemCount,
       _RouteSlotState.pending,
     );
   }
-
-  String _taskId() => mockUuidFromSeed('task|${widget.taskTitle}');
-
-  String _equipmentId(int index, MockRouteItem item) =>
-      mockUuidFromSeed('equip|${widget.taskTitle}|$index|${item.name}');
 
   int? _firstPendingIndex() {
     for (var i = 0; i < _slotStates.length; i++) {
@@ -58,29 +61,72 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
   int get _finishedCount =>
       _slotStates.where((s) => s != _RouteSlotState.pending).length;
 
-  Future<void> _openObjectAt(int index) async {
-    final items = widget.routeItems;
-    if (index < 0 || index >= items.length) return;
+  bool get _allProcessed =>
+      _slotStates.isNotEmpty &&
+      _slotStates.every(
+        (s) =>
+            s == _RouteSlotState.completed ||
+            s == _RouteSlotState.completedWithIssue,
+      );
 
-    final item = items[index];
+  Future<void> _maybeNavigateToSummary() async {
+    if (!_allProcessed) return;
+    final flags = _slotStates
+        .map((st) => st == _RouteSlotState.completedWithIssue)
+        .toList();
+    final anyIssue = flags.any((x) => x);
+    DemoTaskCompletionStore.instance.recordRouteFinished(
+      storeKey: widget.session.storeKey,
+      itemHasIssue: flags,
+      totalPhotosSubmitted: _photosRunningTotal,
+      totalAudioClipsSubmitted: _audioRunningTotal,
+    );
+    await AssignedInspectionTaskService.completeAssignmentAndTask(
+      assignmentId: widget.session.remoteAssignmentId,
+      remoteTaskId: widget.session.remoteTaskId,
+      anyRouteIssue: anyIssue,
+      knownStartedAt: widget.session.assignmentStartedAt,
+    );
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (context) => InspectionTaskSummaryScreen(
+          session: widget.session,
+          itemHasIssue: flags,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openObjectAt(int index) async {
+    if (index < 0 || index >= _slotStates.length) return;
+
     final result = await Navigator.of(context).push<InspectionObjectResult?>(
       MaterialPageRoute<InspectionObjectResult?>(
         builder: (context) => InspectionObjectScreen(
-          equipmentName: item.name,
-          zone: item.subtitle,
-          taskTitle: widget.taskTitle,
-          routeIndex: index,
-          taskId: _taskId(),
-          equipmentId: _equipmentId(index, item),
+          session: widget.session,
+          routeItemIndex: index,
         ),
       ),
     );
 
     if (!mounted || result == null) return;
     setState(() {
+      _photosRunningTotal += result.photoCount;
+      _audioRunningTotal += result.audioCount;
       _slotStates[index] = result.hadDefect
           ? _RouteSlotState.completedWithIssue
           : _RouteSlotState.completed;
+    });
+    unawaited(
+      AssignedInspectionTaskService.touchAssignmentProgress(
+        widget.session.remoteAssignmentId,
+      ),
+    );
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_maybeNavigateToSummary());
     });
   }
 
@@ -120,8 +166,9 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final total = widget.routeItems.length;
     final s = context.strings;
+    final items = widget.session.items;
+    final total = items.length;
     final progressValue = total == 0 ? 0.0 : _finishedCount / total;
     final pending = _firstPendingIndex();
     final allDone = pending == null && total > 0;
@@ -154,7 +201,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.taskTitle,
+                          widget.session.title,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: colorScheme.onSurface,
                           ),
@@ -168,7 +215,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.objectArea,
+                          widget.session.siteAreaLine,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onSurface,
                           ),
@@ -182,7 +229,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.shift,
+                          widget.session.shiftOrDueLine,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onSurface,
                           ),
@@ -222,7 +269,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...widget.routeItems.asMap().entries.map((entry) {
+                ...items.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
                   final order = index + 1;
@@ -244,7 +291,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      '$order. ${item.name}',
+                                      '$order. ${item.equipmentName}',
                                       style:
                                           theme.textTheme.titleSmall?.copyWith(
                                         color: colorScheme.onSurface,
@@ -264,7 +311,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                item.subtitle,
+                                item.equipmentLocation,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
