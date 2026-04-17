@@ -1,6 +1,6 @@
 import 'dart:io';
+import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,6 +12,7 @@ import '../chat/task_chat_attachment_picker.dart';
 import '../chat/task_chat_controller.dart';
 import '../data/inspector_task_session.dart';
 import '../data/task_chat_service.dart';
+import 'task_chat_image_compose.dart';
 import 'widgets/task_flow_visual.dart';
 
 String _taskChatErrorBody(TaskChatErrorKey? key, AppStrings s) {
@@ -39,6 +40,28 @@ String _taskChatErrorBody(TaskChatErrorKey? key, AppStrings s) {
     case TaskChatErrorKey.generic:
     case null:
       return s.taskChatUnableToLoad;
+  }
+}
+
+String _taskChatUserMessageForFileSend(TaskChatUserException e, AppStrings s) {
+  switch (e.code) {
+    case TaskChatUserCode.notAuthenticated:
+      return s.taskChatErrorNoAuthSession;
+    case TaskChatUserCode.profileRequired:
+      return s.taskChatErrorProfileRequired;
+    case TaskChatUserCode.fileTooLarge:
+      return s.taskChatErrorFileTooLarge;
+    case TaskChatUserCode.threadCreateFailed:
+      return s.taskChatErrorCreateThreadFailed;
+    case TaskChatUserCode.permissionDenied:
+    case TaskChatUserCode.rlsInsertDenied:
+    case TaskChatUserCode.messageSendFailed:
+    case TaskChatUserCode.messageReturnEmpty:
+    case TaskChatUserCode.serverSchemaMismatch:
+    case TaskChatUserCode.attachmentMetadataFailed:
+    case TaskChatUserCode.storageUploadFailed:
+    case TaskChatUserCode.storageBucketMissing:
+      return s.taskChatFailedToSendFile;
   }
 }
 
@@ -134,21 +157,20 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
     );
   }
 
-  void _presentTaskChatUserError(TaskChatUserException e, AppStrings s) {
-    final userMsg = _taskChatUserMessage(e, s);
-    final tech = e.technicalDetail?.trim();
+  void _presentTaskChatUserError(
+    TaskChatUserException e,
+    AppStrings s, {
+    bool fileAttachmentFlow = false,
+  }) {
+    final userMsg = fileAttachmentFlow
+        ? _taskChatUserMessageForFileSend(e, s)
+        : _taskChatUserMessage(e, s);
     debugPrint('[TaskChat UI] localized: $userMsg');
+    final tech = e.technicalDetail?.trim();
     if (tech != null && tech.isNotEmpty) {
       debugPrint('[TaskChat UI] technical:\n$tech');
     }
-    if (kDebugMode && tech != null && tech.isNotEmpty) {
-      _snack(
-        '$userMsg\n\n─── DEV ───\n$tech',
-        duration: const Duration(seconds: 22),
-      );
-    } else {
-      _snack(userMsg);
-    }
+    _snack(userMsg);
   }
 
   String _fileExtension(String name) {
@@ -221,23 +243,23 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
     } catch (e, st) {
       debugPrint('[TaskChat] sendText $e\n$st');
       if (!mounted) return;
-      if (kDebugMode) {
-        _snack(
-          '${s.taskChatErrorMessageSendFailed}\n\n─── DEV ───\n'
-          '${e.runtimeType}\n$e',
-          duration: const Duration(seconds: 22),
-        );
-      } else {
-        _snack(s.taskChatErrorMessageSendFailed);
-      }
+      _snack(s.taskChatErrorMessageSendFailed);
     }
   }
 
-  Future<void> _sendFile(File file, String displayName, String? mime) async {
+  /// Sends an attachment with [caption]. When [clearComposerOnSuccess] is true,
+  /// the main composer field is cleared after a successful send (PDF / video / file).
+  Future<bool> _sendFileWithCaption(
+    File file,
+    String displayName,
+    String? mime, {
+    required String caption,
+    required bool clearComposerOnSuccess,
+  }) async {
     if (!_chat.canShowComposer ||
         _chat.phase != TaskChatPhase.ready ||
         _chat.sending) {
-      return;
+      return false;
     }
     final s = context.strings;
     final len = await file.length();
@@ -247,7 +269,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
       } else {
         _snack(s.taskChatErrorUnsupportedFile);
       }
-      return;
+      return false;
     }
 
     try {
@@ -255,33 +277,78 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
         file: file,
         displayName: displayName,
         mime: mime,
-        caption: _textController.text.trim(),
+        caption: caption,
       );
-      if (!mounted) return;
+      if (!mounted) return false;
       if (ok) {
-        _textController.clear();
+        if (clearComposerOnSuccess) {
+          _textController.clear();
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-      } else if (_chat.errorKey != null) {
+        return true;
+      }
+      if (_chat.errorKey != null) {
         _snack(_taskChatErrorBody(_chat.errorKey, s));
       } else {
         _snack(s.taskChatThreadNotFound);
       }
+      return false;
     } on TaskChatUserException catch (e, st) {
       debugPrint('[TaskChat] sendFile $e\n$st');
-      if (!mounted) return;
-      _presentTaskChatUserError(e, s);
+      if (!mounted) return false;
+      _presentTaskChatUserError(e, s, fileAttachmentFlow: true);
+      return false;
     } catch (e, st) {
       debugPrint('[TaskChat] sendFile $e\n$st');
-      if (!mounted) return;
-      if (kDebugMode) {
-        _snack(
-          '${s.taskChatErrorUploadFailed}\n\n─── DEV ───\n'
-          '${e.runtimeType}\n$e',
-          duration: const Duration(seconds: 22),
-        );
-      } else {
-        _snack(s.taskChatErrorUploadFailed);
-      }
+      if (!mounted) return false;
+      _snack(s.taskChatFailedToSendFile);
+      return false;
+    }
+  }
+
+  Future<void> _sendFile(
+    File file,
+    String displayName,
+    String? mime, {
+    String caption = '',
+  }) async {
+    await _sendFileWithCaption(
+      file,
+      displayName,
+      mime,
+      caption: caption,
+      clearComposerOnSuccess: true,
+    );
+  }
+
+  Future<bool> _sendImageFromCompose(
+    TaskChatPickedFile picked,
+    String caption,
+  ) {
+    return _sendFileWithCaption(
+      picked.file,
+      picked.displayName,
+      picked.mime,
+      caption: caption,
+      clearComposerOnSuccess: false,
+    );
+  }
+
+  Future<void> _openPhotoCompose(TaskChatPickedFile? picked) async {
+    if (picked == null || !mounted) return;
+    final s = context.strings;
+    final sent = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        fullscreenDialog: true,
+        builder: (ctx) => TaskChatImageComposePage(
+          imageFile: picked.file,
+          strings: s,
+          onSend: (caption) => _sendImageFromCompose(picked, caption),
+        ),
+      ),
+    );
+    if (sent == true && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
   }
 
@@ -322,12 +389,12 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                   Navigator.pop(ctx);
                   try {
                     final p = await TaskChatAttachmentPicker.pickPhotoFromGallery();
-                    await _sendPicked(p);
+                    await _openPhotoCompose(p);
                   } on PlatformException catch (e) {
                     if (!mounted) return;
                     _snack(_isPermissionDenied(e)
                         ? s.taskChatPermissionDenied
-                        : s.taskChatErrorUploadFailed);
+                        : s.taskChatFailedToSendFile);
                   }
                 },
               ),
@@ -338,12 +405,12 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                   Navigator.pop(ctx);
                   try {
                     final p = await TaskChatAttachmentPicker.takePhotoWithCamera();
-                    await _sendPicked(p);
+                    await _openPhotoCompose(p);
                   } on PlatformException catch (e) {
                     if (!mounted) return;
                     _snack(_isPermissionDenied(e)
                         ? s.taskChatPermissionDenied
-                        : s.taskChatErrorUploadFailed);
+                        : s.taskChatFailedToSendFile);
                   }
                 },
               ),
@@ -402,7 +469,12 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
 
   Future<void> _sendPicked(TaskChatPickedFile? picked) async {
     if (picked == null || !mounted) return;
-    await _sendFile(picked.file, picked.displayName, picked.mime);
+    await _sendFile(
+      picked.file,
+      picked.displayName,
+      picked.mime,
+      caption: _textController.text.trim(),
+    );
   }
 
   Widget _buildComposer(
@@ -782,73 +854,109 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mine = _isMine();
-    final bubbleColor = mine
-        ? colorScheme.primaryContainer.withValues(alpha: 0.55)
-        : colorScheme.surfaceContainerHighest;
-    final borderColor = mine
-        ? colorScheme.primary.withValues(alpha: 0.35)
-        : colorScheme.outlineVariant;
+    final screenW = MediaQuery.sizeOf(context).width;
+    final maxBubbleW = math.min(screenW * 0.78, 340.0);
 
-    return Align(
-      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.86,
-        ),
-        child: Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          color: bubbleColor,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: borderColor),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: Column(
-              crossAxisAlignment:
-                  mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Row(
+    final bodyText = message.body.trim();
+    final hasText = bodyText.isNotEmpty;
+    final attachments = message.attachments;
+
+    final fill = mine
+        ? colorScheme.primaryContainer.withValues(alpha: 0.38)
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.92);
+    final border = mine
+        ? colorScheme.primary.withValues(alpha: 0.22)
+        : colorScheme.outlineVariant.withValues(alpha: 0.45);
+
+    final rMain = 18.0;
+    final rTail = 5.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Align(
+        alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxBubbleW),
+          child: IntrinsicWidth(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: fill,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(rMain),
+                  topRight: Radius.circular(rMain),
+                  bottomLeft: Radius.circular(mine ? rMain : rTail),
+                  bottomRight: Radius.circular(mine ? rTail : rMain),
+                ),
+                border: Border.all(color: border, width: 1),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      _roleCaption(),
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _roleCaption(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.78),
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.12,
+                              height: 1.1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          _timeLabel(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.55),
+                            fontSize:
+                                (theme.textTheme.labelSmall?.fontSize ?? 11) *
+                                    0.92,
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _timeLabel(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                    if (hasText) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        bodyText,
+                        textAlign: TextAlign.start,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          height: 1.28,
+                          letterSpacing: -0.15,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
-                    ),
+                    ],
+                    for (var i = 0; i < attachments.length; i++)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: (hasText || i > 0) ? 8 : 4,
+                        ),
+                        child: _AttachmentPreview(
+                          attachment: attachments[i],
+                          strings: strings,
+                          theme: theme,
+                          colorScheme: colorScheme,
+                          maxContentWidth: maxBubbleW - 22,
+                        ),
+                      ),
                   ],
                 ),
-                if (message.body.trim().isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    message.body,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
-                for (final a in message.attachments)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: _AttachmentPreview(
-                      attachment: a,
-                      strings: strings,
-                      theme: theme,
-                      colorScheme: colorScheme,
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
@@ -863,12 +971,14 @@ class _AttachmentPreview extends StatelessWidget {
     required this.strings,
     required this.theme,
     required this.colorScheme,
+    this.maxContentWidth,
   });
 
   final TaskChatAttachmentVm attachment;
   final AppStrings strings;
   final ThemeData theme;
   final ColorScheme colorScheme;
+  final double? maxContentWidth;
 
   String _ext() {
     final i = attachment.fileName.lastIndexOf('.');
@@ -880,7 +990,8 @@ class _AttachmentPreview extends StatelessWidget {
     final m = attachment.mimeType?.toLowerCase() ?? '';
     if (m.startsWith('image/')) return true;
     final e = _ext();
-    return const {'jpg', 'jpeg', 'png', 'gif', 'webp'}.contains(e);
+    return const {'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'}
+        .contains(e);
   }
 
   bool get _isVideo {
@@ -904,7 +1015,10 @@ class _AttachmentPreview extends StatelessWidget {
 
   Future<void> _open() async {
     try {
-      final url = await TaskChatService.createSignedUrl(attachment.storagePath);
+      final url = await TaskChatService.createSignedUrl(
+        attachment.storagePath,
+        bucket: attachment.storageBucket,
+      );
       final uri = Uri.parse(url);
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!ok) {
@@ -917,89 +1031,113 @@ class _AttachmentPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxW = maxContentWidth;
+
+    Widget constrainChild(Widget child) {
+      if (maxW == null || !maxW.isFinite) return child;
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxW),
+        child: child,
+      );
+    }
+
     if (_isImage) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: FutureBuilder<String>(
-          future: TaskChatService.createSignedUrl(attachment.storagePath),
-          builder: (context, snapshot) {
-            if (snapshot.hasError || !snapshot.hasData) {
-              return Container(
-                height: 120,
-                alignment: Alignment.center,
-                color: colorScheme.surfaceContainerHigh,
-                child: snapshot.hasError
-                    ? Icon(Icons.broken_image_outlined, color: colorScheme.error)
-                    : const SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+      return constrainChild(
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: FutureBuilder<String>(
+            future: TaskChatService.createSignedUrl(
+            attachment.storagePath,
+            bucket: attachment.storageBucket,
+          ),
+            builder: (context, snapshot) {
+              if (snapshot.hasError || !snapshot.hasData) {
+                return Container(
+                  height: 120,
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  color: colorScheme.surfaceContainerHigh,
+                  child: snapshot.hasError
+                      ? Icon(Icons.broken_image_outlined, color: colorScheme.error)
+                      : const SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                );
+              }
+              return GestureDetector(
+                onTap: _open,
+                child: Image.network(
+                  snapshot.data!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (ctx, child, prog) {
+                    if (prog == null) return child;
+                    return Container(
+                      height: 200,
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      color: colorScheme.surfaceContainerHigh,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  },
+                ),
               );
-            }
-            return GestureDetector(
-              onTap: _open,
-              child: Image.network(
-                snapshot.data!,
-                fit: BoxFit.cover,
-                loadingBuilder: (ctx, child, prog) {
-                  if (prog == null) return child;
-                  return Container(
-                    height: 160,
-                    alignment: Alignment.center,
-                    color: colorScheme.surfaceContainerHigh,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
-                  );
-                },
-              ),
-            );
-          },
+            },
+          ),
         ),
       );
     }
 
-    return Material(
-      color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.9),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: _open,
+    return constrainChild(
+      Material(
+        color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Icon(
-                _isVideo
-                    ? Icons.video_file_outlined
-                    : _isPdf
-                        ? Icons.picture_as_pdf_outlined
-                        : Icons.insert_drive_file_outlined,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      attachment.fileName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      '${_typeLabel()} · ${strings.taskChatAttachmentOpen}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+        child: InkWell(
+          onTap: _open,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Icon(
+                  _isVideo
+                      ? Icons.video_file_outlined
+                      : _isPdf
+                          ? Icons.picture_as_pdf_outlined
+                          : Icons.insert_drive_file_outlined,
+                  color: colorScheme.primary,
                 ),
-              ),
-              Icon(Icons.open_in_new_rounded, color: colorScheme.onSurfaceVariant),
-            ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        attachment.fileName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '${_typeLabel()} · ${strings.taskChatAttachmentOpen}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -300,6 +300,7 @@ class AppStrings {
     required this.taskChatAttachmentPdf,
     required this.taskChatAttachmentFile,
     required this.taskChatErrorMessageSendFailed,
+    required this.taskChatFailedToSendFile,
     required this.taskChatErrorUploadFailed,
     required this.taskChatErrorStorageUnavailable,
     required this.taskChatErrorUnavailable,
@@ -322,6 +323,9 @@ class AppStrings {
     required this.taskChatTakePhoto,
     required this.taskChatAttachPdfDocument,
     required this.taskChatChooseAttachment,
+    required this.taskChatPhotoPreviewTitle,
+    required this.taskChatAttachmentCaptionHint,
+    required this.taskChatMediaSending,
     required this.taskChatErrorProfileRequired,
     required this.taskChatErrorTimeout,
     required this.taskChatErrorConnection,
@@ -683,6 +687,7 @@ class AppStrings {
   final String taskChatAttachmentPdf;
   final String taskChatAttachmentFile;
   final String taskChatErrorMessageSendFailed;
+  final String taskChatFailedToSendFile;
   final String taskChatErrorUploadFailed;
   final String taskChatErrorStorageUnavailable;
   final String taskChatErrorUnavailable;
@@ -705,6 +710,9 @@ class AppStrings {
   final String taskChatTakePhoto;
   final String taskChatAttachPdfDocument;
   final String taskChatChooseAttachment;
+  final String taskChatPhotoPreviewTitle;
+  final String taskChatAttachmentCaptionHint;
+  final String taskChatMediaSending;
   final String taskChatErrorProfileRequired;
   final String taskChatErrorTimeout;
   final String taskChatErrorConnection;
@@ -1215,6 +1223,7 @@ const AppStrings _ru = AppStrings(
   taskChatAttachmentPdf: 'PDF',
   taskChatAttachmentFile: 'Файл',
   taskChatErrorMessageSendFailed: 'Не удалось отправить сообщение',
+  taskChatFailedToSendFile: 'Не удалось отправить файл',
   taskChatErrorUploadFailed: 'Не удалось загрузить файл',
   taskChatErrorStorageUnavailable: 'Хранилище файлов недоступно',
   taskChatErrorUnavailable: 'Чат временно недоступен',
@@ -1238,6 +1247,9 @@ const AppStrings _ru = AppStrings(
   taskChatTakePhoto: 'Сделать фото',
   taskChatAttachPdfDocument: 'PDF-документ',
   taskChatChooseAttachment: 'Выберите вложение',
+  taskChatPhotoPreviewTitle: 'Отправка фото',
+  taskChatAttachmentCaptionHint: 'Добавить подпись (необязательно)',
+  taskChatMediaSending: 'Отправка…',
   taskChatErrorProfileRequired:
       'Для чата нужен профиль работника. Обратитесь к администратору.',
   taskChatErrorTimeout:
@@ -1657,6 +1669,7 @@ const AppStrings _tr = AppStrings(
   taskChatAttachmentPdf: 'PDF',
   taskChatAttachmentFile: 'Dosya',
   taskChatErrorMessageSendFailed: 'Mesaj gönderilemedi',
+  taskChatFailedToSendFile: 'Dosya gönderilemedi',
   taskChatErrorUploadFailed: 'Dosya yüklenemedi',
   taskChatErrorStorageUnavailable: 'Dosya depolaması kullanılamıyor',
   taskChatErrorUnavailable: 'Sohbet şu anda kullanılamıyor',
@@ -1680,6 +1693,9 @@ const AppStrings _tr = AppStrings(
   taskChatTakePhoto: 'Fotoğraf çek',
   taskChatAttachPdfDocument: 'PDF belgesi',
   taskChatChooseAttachment: 'Ek seçin',
+  taskChatPhotoPreviewTitle: 'Fotoğraf gönder',
+  taskChatAttachmentCaptionHint: 'İsteğe bağlı açıklama',
+  taskChatMediaSending: 'Gönderiliyor…',
   taskChatErrorProfileRequired:
       'Sohbet için işçi profili gerekir. Yöneticinize başvurun.',
   taskChatErrorTimeout:
@@ -2096,6 +2112,7 @@ const AppStrings _en = AppStrings(
   taskChatAttachmentPdf: 'PDF',
   taskChatAttachmentFile: 'File',
   taskChatErrorMessageSendFailed: 'Could not send message',
+  taskChatFailedToSendFile: 'Failed to send file',
   taskChatErrorUploadFailed: 'Could not upload file',
   taskChatErrorStorageUnavailable: 'File storage is unavailable',
   taskChatErrorUnavailable: 'Chat is unavailable',
@@ -2119,6 +2136,9 @@ const AppStrings _en = AppStrings(
   taskChatTakePhoto: 'Take photo',
   taskChatAttachPdfDocument: 'PDF document',
   taskChatChooseAttachment: 'Choose attachment',
+  taskChatPhotoPreviewTitle: 'Send photo',
+  taskChatAttachmentCaptionHint: 'Add a caption (optional)',
+  taskChatMediaSending: 'Sending…',
   taskChatErrorProfileRequired:
       'Worker profile is required for chat. Contact your administrator.',
   taskChatErrorTimeout:

@@ -17,6 +17,12 @@ const String kTaskChatMessageBodyColumn = 'body';
 /// Denormalized task reference on `task_chat_messages` (production / `20260422170000` migration).
 const String kTaskChatMessageTaskIdColumn = 'task_id';
 
+/// Values for `task_chat_attachments.attachment_type` (production schema; text / enum).
+const String kTaskChatAttachmentTypeImage = 'image';
+const String kTaskChatAttachmentTypeVideo = 'video';
+const String kTaskChatAttachmentTypePdf = 'pdf';
+const String kTaskChatAttachmentTypeFile = 'file';
+
 /// User-facing send/load failures from [TaskChatService] (map to [AppStrings] in UI).
 enum TaskChatUserCode {
   notAuthenticated,
@@ -73,6 +79,7 @@ class TaskChatAttachmentVm {
     required this.fileName,
     required this.mimeType,
     required this.sizeBytes,
+    this.storageBucket,
   });
 
   final String id;
@@ -80,6 +87,8 @@ class TaskChatAttachmentVm {
   final String fileName;
   final String? mimeType;
   final int? sizeBytes;
+  /// When set (production), signed URLs use this bucket; else [AppEnv.taskChatMediaBucket].
+  final String? storageBucket;
 }
 
 class TaskChatMessageVm {
@@ -170,10 +179,14 @@ class TaskChatService {
     return uid;
   }
 
-  static Future<String> createSignedUrl(String storagePath) async {
-    final res = await _client.storage
-        .from(AppEnv.taskChatMediaBucket)
-        .createSignedUrl(storagePath, 3600);
+  static Future<String> createSignedUrl(
+    String storagePath, {
+    String? bucket,
+  }) async {
+    final b = (bucket != null && bucket.trim().isNotEmpty)
+        ? bucket.trim()
+        : AppEnv.taskChatMediaBucket;
+    final res = await _client.storage.from(b).createSignedUrl(storagePath, 3600);
     return res;
   }
 
@@ -559,6 +572,7 @@ class TaskChatService {
         return null;
       }
       final mime = row['mime_type']?.toString();
+      final bucketRaw = row['storage_bucket']?.toString();
       int? size;
       final sb = row['size_bytes'];
       if (sb is num) size = sb.toInt();
@@ -568,6 +582,7 @@ class TaskChatService {
         fileName: name,
         mimeType: mime?.isEmpty ?? true ? null : mime,
         sizeBytes: size,
+        storageBucket: bucketRaw?.isEmpty ?? true ? null : bucketRaw,
       );
     } catch (_) {
       return null;
@@ -787,9 +802,37 @@ class TaskChatService {
     }
   }
 
+  /// Maps MIME / filename to `task_chat_attachments.attachment_type`.
+  static String inferAttachmentType(String? contentType, String fileName) {
+    final mime = contentType?.toLowerCase().trim() ?? '';
+    if (mime.startsWith('image/')) return kTaskChatAttachmentTypeImage;
+    if (mime.startsWith('video/')) return kTaskChatAttachmentTypeVideo;
+    if (mime == 'application/pdf') return kTaskChatAttachmentTypePdf;
+
+    final lower = fileName.toLowerCase();
+    final dot = lower.lastIndexOf('.');
+    final ext = dot >= 0 && dot < lower.length - 1
+        ? lower.substring(dot + 1)
+        : '';
+    if (const {'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'}.contains(ext)) {
+      return kTaskChatAttachmentTypeImage;
+    }
+    if (const {'mp4', 'mov', 'webm', 'm4v', '3gp'}.contains(ext)) {
+      return kTaskChatAttachmentTypeVideo;
+    }
+    if (ext == 'pdf') return kTaskChatAttachmentTypePdf;
+    return kTaskChatAttachmentTypeFile;
+  }
+
   static Future<void> _removeStorageSilently(String path) async {
     try {
       await _client.storage.from(AppEnv.taskChatMediaBucket).remove([path]);
+    } catch (_) {}
+  }
+
+  static Future<void> _deleteMessageIfEmptyBodyOnly(String messageId) async {
+    try {
+      await _client.from('task_chat_messages').delete().eq('id', messageId);
     } catch (_) {}
   }
 
@@ -882,7 +925,7 @@ class TaskChatService {
 
     final ts = DateTime.now().toUtc().millisecondsSinceEpoch;
     final safeName = _safeFileSegment(fileName);
-    final path = 'tasks/$taskId/$messageId/${ts}_$safeName';
+    final path = 'tasks/$trimmedTaskId/$messageId/${ts}_$safeName';
     final contentType = _inferContentType(fileName, mimeType);
 
     try {
@@ -895,9 +938,9 @@ class TaskChatService {
             ),
           );
     } on StorageException catch (e) {
-      try {
-        await _client.from('task_chat_messages').delete().eq('id', messageId);
-      } catch (_) {}
+      if (caption.isEmpty) {
+        await _deleteMessageIfEmptyBodyOnly(messageId);
+      }
       final tech = formatStorageExceptionTechnical(
         e,
         bucket: AppEnv.taskChatMediaBucket,
@@ -933,9 +976,9 @@ class TaskChatService {
         technicalDetail: tech,
       );
     } catch (e, st) {
-      try {
-        await _client.from('task_chat_messages').delete().eq('id', messageId);
-      } catch (_) {}
+      if (caption.isEmpty) {
+        await _deleteMessageIfEmptyBodyOnly(messageId);
+      }
       if (e is TaskChatUserException) rethrow;
       throw TaskChatUserException(
         TaskChatUserCode.storageUploadFailed,
@@ -944,48 +987,59 @@ class TaskChatService {
       );
     }
 
+    final resolvedMime = contentType ?? mimeType;
+    final attachmentType = inferAttachmentType(resolvedMime, fileName);
+    const attachmentPayloadKeys = [
+      'message_id',
+      'task_id',
+      'uploaded_by',
+      'attachment_type',
+      'file_name',
+      'storage_bucket',
+      'storage_path',
+      'mime_type',
+      'size_bytes',
+    ];
     try {
       debugPrint(
         '[TaskChat] attachment insert → table=task_chat_attachments '
-        'payload_keys=message_id,storage_path,file_name,mime_type,size_bytes',
+        'payload_keys=${attachmentPayloadKeys.join(',')} '
+        'attachment_type=$attachmentType bucket=${AppEnv.taskChatMediaBucket}',
       );
       await _client.from('task_chat_attachments').insert({
         'message_id': messageId,
-        'storage_path': path,
+        'task_id': trimmedTaskId,
+        'uploaded_by': uid,
+        'attachment_type': attachmentType,
         'file_name': fileName,
-        'mime_type': contentType ?? mimeType,
+        'storage_bucket': AppEnv.taskChatMediaBucket,
+        'storage_path': path,
+        'mime_type': resolvedMime,
         'size_bytes': bytes.length,
       });
     } on PostgrestException catch (e) {
       await _removeStorageSilently(path);
-      try {
-        await _client.from('task_chat_messages').delete().eq('id', messageId);
-      } catch (_) {}
-      final tech = formatPostgrestTechnical(
+      if (caption.isEmpty) {
+        await _deleteMessageIfEmptyBodyOnly(messageId);
+      }
+      debugPrint(
+        '[TaskChat] attachment insert failed (storage object may be removed): '
+        '${e.code} ${e.message} details=${e.details}',
+      );
+      throw _mapPostgrestSendFailure(
         e,
         table: 'task_chat_attachments',
         operation: 'insert',
-        payloadKeys: const [
-          'message_id',
-          'storage_path',
-          'file_name',
-          'mime_type',
-          'size_bytes',
-        ],
+        payloadKeys: attachmentPayloadKeys,
         meta: meta,
         authUid: uid,
       );
-      debugPrint('[TaskChat] attachment PostgREST failure:\n$tech');
-      throw TaskChatUserException(
-        TaskChatUserCode.attachmentMetadataFailed,
-        debugDetail: e.message,
-        technicalDetail: tech,
-      );
     } catch (e, st) {
       await _removeStorageSilently(path);
-      try {
-        await _client.from('task_chat_messages').delete().eq('id', messageId);
-      } catch (_) {}
+      if (caption.isEmpty) {
+        await _deleteMessageIfEmptyBodyOnly(messageId);
+      }
+      if (e is TaskChatUserException) rethrow;
       throw TaskChatUserException(
         TaskChatUserCode.attachmentMetadataFailed,
         debugDetail: '$e',
