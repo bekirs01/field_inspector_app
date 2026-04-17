@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/util/mock_uuid.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../../tasks/data/assigned_inspection_task_service.dart';
 import '../../tasks/data/demo_task_completion_store.dart';
 import '../../tasks/data/inspector_task_session.dart';
@@ -246,7 +245,6 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen>
         return Scaffold(
           appBar: AppBar(
             title: Text(s.inspectionExecutionAppTitle),
-            actions: const [LanguageMenuButton()],
           ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

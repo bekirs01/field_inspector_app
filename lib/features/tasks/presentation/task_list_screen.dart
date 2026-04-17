@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/worker_identity.dart';
@@ -9,7 +10,6 @@ import '../../../core/config/worker_profile_service.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../../inspection/data/remote_send_availability.dart';
 import '../data/assigned_inspection_task_service.dart';
 import '../data/demo_task_completion_store.dart';
@@ -64,10 +64,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return _TaskListPageData(load: load, profile: profile);
   }
 
-  void _reload() {
+  Future<void> _reload() async {
+    final f = _loadPage();
     setState(() {
-      _loadFuture = _loadPage();
+      _loadFuture = f;
     });
+    await f;
   }
 
   List<InspectorTaskSession> _realSessions(TaskListLoadResult load, AppStrings s) {
@@ -102,6 +104,209 @@ class _TaskListScreenState extends State<TaskListScreen> {
     }
   }
 
+  Widget _taskListLoadedContent({
+    required AsyncSnapshot<_TaskListPageData> snapshot,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    required DemoTaskCompletionStore store,
+    required AppStrings sNow,
+  }) {
+    final page = snapshot.data!;
+    final load = page.load;
+    final profile = page.profile;
+    final realSessions = _realSessions(load, sNow);
+    final hasRealTasks = realSessions.isNotEmpty;
+    final err = load.error;
+    final remoteSucceeded = err == null;
+    final showError = err != null;
+    final showEmptyAssigned = remoteSucceeded && !hasRealTasks;
+    final showDemoSection = kDebugMode &&
+        !hasRealTasks &&
+        !WorkerIdentity.hasAuthenticatedWorkerSession();
+
+    final errLine = _errorLine(sNow, err);
+
+    final children = <Widget>[
+      _WorkerContextCard(
+        s: sNow,
+        theme: theme,
+        colorScheme: colorScheme,
+        profile: profile,
+      ),
+    ];
+
+    if (showError && errLine != null) {
+      children.addAll([
+        const SizedBox(height: 16),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  errLine,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () {
+                    unawaited(_reload());
+                  },
+                  child: Text(sNow.tasksRetry),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ]);
+    }
+
+    if (hasRealTasks) {
+      final activeReal = realSessions
+          .where(
+            (session) => !taskSessionIsArchived(
+              session: session,
+              store: store,
+            ),
+          )
+          .toList();
+      children.addAll([
+        const SizedBox(height: 20),
+        _SectionHeader(text: sNow.tasksSectionAssignedRounds),
+        const SizedBox(height: 12),
+        if (activeReal.isEmpty)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 22,
+              ),
+              child: Text(
+                sNow.tasksAllCompletedSeeArchive,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          )
+        else
+          ...activeReal.map(
+            (session) => Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: _TaskListCard(
+                session: session,
+                theme: theme,
+                colorScheme: colorScheme,
+                s: sNow,
+                store: store,
+              ),
+            ),
+          ),
+      ]);
+    }
+
+    if (showEmptyAssigned) {
+      children.addAll([
+        const SizedBox(height: 20),
+        _SectionHeader(text: sNow.tasksSectionAssignedRounds),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 26,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    Icons.task_alt_rounded,
+                    size: 28,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        sNow.tasksNoAssignments,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ]);
+    }
+
+    if (showDemoSection) {
+      final demoSessions = _demoSessions(sNow)
+          .where(
+            (session) => !taskSessionIsArchived(
+              session: session,
+              store: store,
+            ),
+          )
+          .toList();
+      children.addAll([
+        const SizedBox(height: 28),
+        Divider(
+          height: 1,
+          color: colorScheme.outlineVariant,
+        ),
+        const SizedBox(height: 24),
+        _SectionHeader(text: sNow.tasksSectionDemoTasks),
+        const SizedBox(height: 6),
+        Text(
+          sNow.tasksDemoSectionDebugHint,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            height: 1.35,
+          ),
+        ),
+        const SizedBox(height: 14),
+        ...demoSessions.map(
+          (session) => Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: _TaskListCard(
+              session: session,
+              theme: theme,
+              colorScheme: colorScheme,
+              s: sNow,
+              store: store,
+            ),
+          ),
+        ),
+      ]);
+    }
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+      children: children,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final parentTheme = Theme.of(context);
@@ -120,261 +325,142 @@ class _TaskListScreenState extends State<TaskListScreen> {
               final colorScheme = theme.colorScheme;
               return Scaffold(
                 backgroundColor: theme.scaffoldBackgroundColor,
-                appBar: buildTaskFlowAppBar(
-                  context: context,
-                  title: Text(
-                    s.tasksAppTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh_rounded),
-                      tooltip: s.tasksRetry,
-                      onPressed: _reload,
-                    ),
-                    if (!widget.embedInMainShell) ...[
-                      IconButton(
-                        icon: const Icon(Icons.logout_rounded),
-                        tooltip: s.tasksAppBarSignOut,
-                        onPressed: () async {
-                          await Supabase.instance.client.auth.signOut();
-                        },
+                appBar: widget.embedInMainShell
+                    ? null
+                    : buildTaskFlowAppBar(
+                        context: context,
+                        title: Text(
+                          s.tasksAppTitle,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        actions: [
+                          IconButton(
+                            icon: const Icon(Icons.refresh_rounded),
+                            tooltip: s.tasksRetry,
+                            onPressed: () {
+                              unawaited(_reload());
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.logout_rounded),
+                            tooltip: s.tasksAppBarSignOut,
+                            onPressed: () async {
+                              await Supabase.instance.client.auth.signOut();
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                    const LanguageMenuButton(),
-                  ],
-                ),
                 body: _maybeSnow(
                   embed: widget.embedInMainShell,
-                  child: FutureBuilder<_TaskListPageData>(
-                    future: _loadFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                s.tasksLoading,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      final page = snapshot.data!;
-                      final load = page.load;
-                      final profile = page.profile;
-                      final sNow = context.strings;
-                      final realSessions = _realSessions(load, sNow);
-                      final hasRealTasks = realSessions.isNotEmpty;
-                      final err = load.error;
-                      final remoteSucceeded = err == null;
-                      final showError = err != null;
-                      final showEmptyAssigned =
-                          remoteSucceeded && !hasRealTasks;
-                      final showDemoSection = kDebugMode &&
-                          !hasRealTasks &&
-                          !WorkerIdentity.hasAuthenticatedWorkerSession();
-
-                      final errLine = _errorLine(sNow, err);
-
-                      final children = <Widget>[
-                        _WorkerContextCard(
-                          s: sNow,
-                          theme: theme,
-                          colorScheme: colorScheme,
-                          profile: profile,
-                        ),
-                      ];
-
-                      if (showError && errLine != null) {
-                        children.addAll([
-                          const SizedBox(height: 16),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(18),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    errLine,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.error,
-                                      height: 1.35,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextButton(
-                                    onPressed: _reload,
-                                    child: Text(sNow.tasksRetry),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ]);
-                      }
-
-                      if (hasRealTasks) {
-                        final activeReal = realSessions
-                            .where(
-                              (session) => !taskSessionIsArchived(
-                                session: session,
-                                store: store,
-                              ),
-                            )
-                            .toList();
-                        children.addAll([
-                          const SizedBox(height: 20),
-                          _SectionHeader(text: sNow.tasksSectionAssignedRounds),
-                          const SizedBox(height: 12),
-                          if (activeReal.isEmpty)
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 22,
-                                ),
-                                child: Text(
-                                  sNow.tasksAllCompletedSeeArchive,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            ...activeReal.map(
-                              (session) => Padding(
-                                padding: const EdgeInsets.only(bottom: 14),
-                                child: _TaskListCard(
-                                  session: session,
-                                  theme: theme,
-                                  colorScheme: colorScheme,
-                                  s: sNow,
-                                  store: store,
-                                ),
-                              ),
-                            ),
-                        ]);
-                      }
-
-                      if (showEmptyAssigned) {
-                        children.addAll([
-                          const SizedBox(height: 20),
-                          _SectionHeader(text: sNow.tasksSectionAssignedRounds),
-                          const SizedBox(height: 12),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 26,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primary
-                                          .withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Icon(
-                                      Icons.task_alt_rounded,
-                                      size: 28,
-                                      color: colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          sNow.tasksNoAssignments,
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(
-                                            color: colorScheme.onSurface,
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.25,
+                  child: widget.embedInMainShell
+                      ? AnnotatedRegion<SystemUiOverlayStyle>(
+                          value: SystemUiOverlayStyle.light,
+                          child: SafeArea(
+                            bottom: false,
+                            child: FutureBuilder<_TaskListPageData>(
+                              future: _loadFuture,
+                              builder: (context, snapshot) {
+                                Widget content;
+                                if (snapshot.connectionState !=
+                                    ConnectionState.done) {
+                                  content = LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return SingleChildScrollView(
+                                        physics:
+                                            const AlwaysScrollableScrollPhysics(),
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight: constraints.maxHeight,
+                                          ),
+                                          child: Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                SizedBox(
+                                                  width: 36,
+                                                  height: 36,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    strokeWidth: 2.5,
+                                                    color: colorScheme.primary,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 20),
+                                                Text(
+                                                  s.tasksLoading,
+                                                  style: theme
+                                                      .textTheme.bodyLarge
+                                                      ?.copyWith(
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ],
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  content = _taskListLoadedContent(
+                                    snapshot: snapshot,
+                                    theme: theme,
+                                    colorScheme: colorScheme,
+                                    store: store,
+                                    sNow: context.strings,
+                                  );
+                                }
+                                return RefreshIndicator(
+                                  onRefresh: _reload,
+                                  child: content,
+                                );
+                              },
+                            ),
+                          ),
+                        )
+                      : FutureBuilder<_TaskListPageData>(
+                          future: _loadFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState !=
+                                ConnectionState.done) {
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 36,
+                                      height: 36,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: colorScheme.primary,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ]);
-                      }
-
-                      if (showDemoSection) {
-                        final demoSessions = _demoSessions(sNow)
-                            .where(
-                              (session) => !taskSessionIsArchived(
-                                session: session,
-                                store: store,
-                              ),
-                            )
-                            .toList();
-                        children.addAll([
-                          const SizedBox(height: 28),
-                          Divider(
-                            height: 1,
-                            color: colorScheme.outlineVariant,
-                          ),
-                          const SizedBox(height: 24),
-                          _SectionHeader(text: sNow.tasksSectionDemoTasks),
-                          const SizedBox(height: 6),
-                          Text(
-                            sNow.tasksDemoSectionDebugHint,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              height: 1.35,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          ...demoSessions.map(
-                            (session) => Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: _TaskListCard(
-                                session: session,
-                                theme: theme,
-                                colorScheme: colorScheme,
-                                s: sNow,
-                                store: store,
-                              ),
-                            ),
-                          ),
-                        ]);
-                      }
-
-                      return ListView(
-                        padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
-                        children: children,
-                      );
-                    },
-                  ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      s.tasksLoading,
+                                      style: theme.textTheme.bodyLarge
+                                          ?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return _taskListLoadedContent(
+                              snapshot: snapshot,
+                              theme: theme,
+                              colorScheme: colorScheme,
+                              store: store,
+                              sNow: context.strings,
+                            );
+                          },
+                        ),
                 ),
               );
             },

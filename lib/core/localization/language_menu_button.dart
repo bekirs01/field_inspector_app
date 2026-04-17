@@ -4,14 +4,22 @@ import 'app_language.dart';
 import 'language_controller.dart';
 
 class LanguageMenuButton extends StatelessWidget {
-  const LanguageMenuButton({super.key});
+  const LanguageMenuButton({
+    super.key,
+    this.showLabel = true,
+  });
+
+  /// When false, shows a compact control (e.g. on Profile next to a [ListTile] title).
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
     final controller = context.languageController;
     final s = context.strings;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return PopupMenuButton<AppLanguage>(
+      tooltip: s.languageMenuLabel,
       onSelected: controller.setLanguage,
       itemBuilder: (context) => [
         PopupMenuItem(
@@ -29,13 +37,19 @@ class LanguageMenuButton extends StatelessWidget {
       ],
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Text(
-          s.languageMenuLabel,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: showLabel
+            ? Text(
+                s.languageMenuLabel,
+                style: TextStyle(
+                  color: primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              )
+            : Icon(
+                Icons.language_rounded,
+                color: primary,
+                size: 24,
+              ),
       ),
     );
   }

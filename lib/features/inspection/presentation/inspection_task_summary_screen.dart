@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../../tasks/data/demo_task_completion_store.dart';
 import '../../tasks/data/inspector_task_session.dart';
 import '../../tasks/presentation/widgets/task_flow_visual.dart';
@@ -101,9 +100,6 @@ class InspectionTaskSummaryScreen extends StatelessWidget {
               appBar: buildTaskFlowAppBar(
                 context: context,
                 title: Text(s.inspectionTaskSummaryTitle),
-                actions: const [
-                  LanguageMenuButton(),
-                ],
               ),
               body: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../../inspection/presentation/inspection_route_screen.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
@@ -79,9 +78,6 @@ class TaskDetailScreen extends StatelessWidget {
                       letterSpacing: -0.2,
                     ),
                   ),
-                  actions: const [
-                    LanguageMenuButton(),
-                  ],
                 ),
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

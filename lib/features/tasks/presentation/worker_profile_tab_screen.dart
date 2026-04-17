@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/worker_identity.dart';
 import '../../../core/config/worker_profile_service.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
-import 'widgets/task_flow_visual.dart';
-
 /// Minimal profile tab: real worker data, language, sign-out.
 class WorkerProfileTabScreen extends StatefulWidget {
   const WorkerProfileTabScreen({super.key});
@@ -42,31 +41,31 @@ class _WorkerProfileTabScreenState extends State<WorkerProfileTabScreen> {
         final s = context.strings;
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: buildTaskFlowAppBar(
-            context: context,
-            title: Text(s.profileScreenTitle),
-          ),
-          body: FutureBuilder<WorkerProfile?>(
-            future: _profileFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                );
-              }
-              final p = snapshot.data;
-              final workerId = WorkerIdentity.resolveWorkerUserId();
+          body: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: SafeArea(
+              bottom: false,
+              child: FutureBuilder<WorkerProfile?>(
+                future: _profileFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return Center(
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    );
+                  }
+                  final p = snapshot.data;
+                  final workerId = WorkerIdentity.resolveWorkerUserId();
 
-              return ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                children: [
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    children: [
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(18),
@@ -133,20 +132,30 @@ class _WorkerProfileTabScreenState extends State<WorkerProfileTabScreen> {
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
+                        horizontal: 4,
+                        vertical: 2,
                       ),
                       child: Row(
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Icon(
+                              Icons.language_rounded,
+                              size: 22,
+                              color: colorScheme.primary.withValues(alpha: 0.9),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               s.languageMenuLabel,
-                              style: theme.textTheme.bodyLarge?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 color: colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                          const LanguageMenuButton(),
+                          const LanguageMenuButton(showLabel: false),
                         ],
                       ),
                     ),
@@ -163,9 +172,11 @@ class _WorkerProfileTabScreenState extends State<WorkerProfileTabScreen> {
                     onPressed: _reload,
                     child: Text(s.tasksRetry),
                   ),
-                ],
-              );
-            },
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
         );
       },

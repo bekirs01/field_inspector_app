@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/config/worker_identity.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../data/assigned_inspection_task_service.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
@@ -45,10 +45,12 @@ class _WorkerArchiveTabScreenState extends State<WorkerArchiveTabScreen> {
     return _ArchivePageData(load: load);
   }
 
-  void _reload() {
+  Future<void> _reload() async {
+    final f = _load();
     setState(() {
-      _loadFuture = _load();
+      _loadFuture = f;
     });
+    await f;
   }
 
   List<InspectorTaskSession> _realSessions(TaskListLoadResult load, AppStrings s) {
@@ -106,6 +108,113 @@ class _WorkerArchiveTabScreenState extends State<WorkerArchiveTabScreen> {
     return a.title.toLowerCase().compareTo(b.title.toLowerCase());
   }
 
+  Widget _archiveScrollableContent({
+    required BuildContext context,
+    required AsyncSnapshot<_ArchivePageData> snapshot,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    required AppStrings s,
+    required DemoTaskCompletionStore store,
+  }) {
+    if (snapshot.connectionState != ConnectionState.done) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      s.tasksLoading,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    final load = snapshot.data!.load;
+    final hasRealTasks = load.bundles.isNotEmpty;
+    final archived = _archivedSessions(
+      load: load,
+      s: s,
+      store: store,
+      hasRealTasks: hasRealTasks,
+    );
+
+    if (archived.isEmpty) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: _ArchiveEmptyState(
+                theme: theme,
+                colorScheme: colorScheme,
+                s: s,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+      children: [
+        Text(
+          s.archiveSectionHeader.toUpperCase(),
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
+            letterSpacing: 1.15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          s.archiveCountSummary(archived.length),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.88),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 16),
+        for (final session in archived)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: _ArchiveTaskCard(
+              session: session,
+              theme: theme,
+              colorScheme: colorScheme,
+              s: s,
+              store: store,
+              onTap: () => _openArchived(context, session, store),
+            ),
+          ),
+      ],
+    );
+  }
+
   void _openArchived(
     BuildContext context,
     InspectorTaskSession session,
@@ -146,100 +255,27 @@ class _WorkerArchiveTabScreenState extends State<WorkerArchiveTabScreen> {
               final colorScheme = theme.colorScheme;
               return Scaffold(
                 backgroundColor: theme.scaffoldBackgroundColor,
-                appBar: buildTaskFlowAppBar(
-                  context: context,
-                  title: Text(
-                    s.archiveAppBarTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
+                body: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: SystemUiOverlayStyle.light,
+                  child: SafeArea(
+                    bottom: false,
+                    child: FutureBuilder<_ArchivePageData>(
+                      future: _loadFuture,
+                      builder: (context, snapshot) {
+                        return RefreshIndicator(
+                          onRefresh: _reload,
+                          child: _archiveScrollableContent(
+                            context: context,
+                            snapshot: snapshot,
+                            theme: theme,
+                            colorScheme: colorScheme,
+                            s: s,
+                            store: store,
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh_rounded),
-                      tooltip: s.tasksRetry,
-                      onPressed: _reload,
-                    ),
-                    const LanguageMenuButton(),
-                  ],
-                ),
-                body: FutureBuilder<_ArchivePageData>(
-                  future: _loadFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 36,
-                              height: 36,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              s.tasksLoading,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    final load = snapshot.data!.load;
-                    final hasRealTasks = load.bundles.isNotEmpty;
-                    final archived = _archivedSessions(
-                      load: load,
-                      s: s,
-                      store: store,
-                      hasRealTasks: hasRealTasks,
-                    );
-
-                    if (archived.isEmpty) {
-                      return _ArchiveEmptyState(theme: theme, colorScheme: colorScheme, s: s);
-                    }
-
-                    return ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
-                      children: [
-                        Text(
-                          s.archiveSectionHeader.toUpperCase(),
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
-                            letterSpacing: 1.15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          s.archiveCountSummary(archived.length),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.88),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        for (final session in archived)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _ArchiveTaskCard(
-                              session: session,
-                              theme: theme,
-                              colorScheme: colorScheme,
-                              s: s,
-                              store: store,
-                              onTap: () => _openArchived(context, session, store),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
                 ),
               );
             },

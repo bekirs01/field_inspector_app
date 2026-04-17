@@ -228,6 +228,15 @@ class AppStrings {
     required this.taskRequestErrorNoWorker,
     required this.taskRequestErrorNotReady,
     required this.taskRequestErrorInsert,
+    required this.taskRequestErrorNoAuthSession,
+    required this.taskRequestErrorProfileMissing,
+    required this.taskRequestErrorSupabaseNotConfigured,
+    required this.taskRequestErrorRlsDenied,
+    required this.taskRequestErrorSchemaMismatch,
+    required this.taskRequestErrorNetwork,
+    required this.taskRequestErrorUnknown,
+    required this.taskRequestValidationNeedTitle,
+    required this.taskRequestValidationNeedDescription,
     required this.inspectionObjectEditTitle,
     required this.editResultBannerHint,
     required this.summaryEditResultButton,
@@ -493,6 +502,15 @@ class AppStrings {
   final String taskRequestErrorNoWorker;
   final String taskRequestErrorNotReady;
   final String taskRequestErrorInsert;
+  final String taskRequestErrorNoAuthSession;
+  final String taskRequestErrorProfileMissing;
+  final String taskRequestErrorSupabaseNotConfigured;
+  final String taskRequestErrorRlsDenied;
+  final String taskRequestErrorSchemaMismatch;
+  final String taskRequestErrorNetwork;
+  final String taskRequestErrorUnknown;
+  final String taskRequestValidationNeedTitle;
+  final String taskRequestValidationNeedDescription;
   final String inspectionObjectEditTitle;
   final String editResultBannerHint;
   final String summaryEditResultButton;
@@ -894,6 +912,22 @@ const AppStrings _ru = AppStrings(
   taskRequestErrorNoWorker: 'Нет учётной записи исполнителя',
   taskRequestErrorNotReady: 'Сервер недоступен',
   taskRequestErrorInsert: 'Не удалось отправить запрос',
+  taskRequestErrorNoAuthSession:
+      'Войдите в аккаунт исполнителя (не анонимно), чтобы отправить запрос.',
+  taskRequestErrorProfileMissing:
+      'Профиль не найден в базе. Обратитесь к администратору.',
+  taskRequestErrorSupabaseNotConfigured:
+      'Приложение не подключено к серверу. Проверьте настройки.',
+  taskRequestErrorRlsDenied:
+      'Нет прав на отправку запроса. Проверьте учётную запись и политики доступа.',
+  taskRequestErrorSchemaMismatch:
+      'Сервер не совместим с приложением. Нужно обновить схему базы (миграции).',
+  taskRequestErrorNetwork:
+      'Нет сети или сервер не отвечает. Повторите попытку позже.',
+  taskRequestErrorUnknown:
+      'Не удалось отправить запрос. Попробуйте ещё раз.',
+  taskRequestValidationNeedTitle: 'Укажите краткое описание запроса',
+  taskRequestValidationNeedDescription: 'Укажите подробное описание',
   inspectionObjectEditTitle: 'Редактирование результата',
   editResultBannerHint:
       'Вы редактируете ранее отправленный результат. Изменения будут сохранены как новая версия отчёта после отправки.',
@@ -1186,6 +1220,22 @@ const AppStrings _tr = AppStrings(
   taskRequestErrorNoWorker: 'İşçi oturumu yok',
   taskRequestErrorNotReady: 'Sunucu hazır değil',
   taskRequestErrorInsert: 'Talep gönderilemedi',
+  taskRequestErrorNoAuthSession:
+      'Talep göndermek için işçi hesabıyla (anonim değil) giriş yapın.',
+  taskRequestErrorProfileMissing:
+      'Profil veritabanında yok. Yöneticiye başvurun.',
+  taskRequestErrorSupabaseNotConfigured:
+      'Uygulama sunucuya bağlı değil. Yapılandırmayı kontrol edin.',
+  taskRequestErrorRlsDenied:
+      'Gönderim izni yok. Hesabınızı ve erişim kurallarını kontrol edin.',
+  taskRequestErrorSchemaMismatch:
+      'Sunucu şeması uygulama ile uyumsuz. Veritabanı güncellenmeli.',
+  taskRequestErrorNetwork:
+      'Ağ yok veya sunucu yanıt vermiyor. Sonra tekrar deneyin.',
+  taskRequestErrorUnknown:
+      'Talep gönderilemedi. Tekrar deneyin.',
+  taskRequestValidationNeedTitle: 'Kısa özet girin',
+  taskRequestValidationNeedDescription: 'Ayrıntılı açıklama girin',
   inspectionObjectEditTitle: 'Nesneyi düzenle',
   editResultBannerHint:
       'Daha önce gönderilmiş sonucu düzenliyorsunuz. Gönderdikten sonra rapor yeni bir sürüm olarak kaydedilir.',
@@ -1477,6 +1527,22 @@ const AppStrings _en = AppStrings(
   taskRequestErrorNoWorker: 'No worker session',
   taskRequestErrorNotReady: 'Server not ready',
   taskRequestErrorInsert: 'Could not submit request',
+  taskRequestErrorNoAuthSession:
+      'Sign in with a worker account (not anonymous) to submit a request.',
+  taskRequestErrorProfileMissing:
+      'No profile in the database. Contact an administrator.',
+  taskRequestErrorSupabaseNotConfigured:
+      'App is not connected to the server. Check configuration.',
+  taskRequestErrorRlsDenied:
+      'You do not have permission to submit. Check your account and access policies.',
+  taskRequestErrorSchemaMismatch:
+      'Server schema does not match the app. Database migrations may be required.',
+  taskRequestErrorNetwork:
+      'No network or the server did not respond. Try again later.',
+  taskRequestErrorUnknown:
+      'Could not submit the request. Please try again.',
+  taskRequestValidationNeedTitle: 'Enter a short summary',
+  taskRequestValidationNeedDescription: 'Enter a detailed description',
   inspectionObjectEditTitle: 'Edit inspection',
   editResultBannerHint:
       'You are editing a previously submitted result. Sending saves a new report version.',

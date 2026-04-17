@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../../inspection/presentation/inspection_resubmit_navigation.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
@@ -95,9 +94,6 @@ class CompletedTaskReportScreen extends StatelessWidget {
                 appBar: buildTaskFlowAppBar(
                   context: context,
                   title: Text(s.completedReportAppTitle),
-                  actions: const [
-                    LanguageMenuButton(),
-                  ],
                 ),
                 body: Center(
                   child: Padding(
@@ -120,9 +116,6 @@ class CompletedTaskReportScreen extends StatelessWidget {
               appBar: buildTaskFlowAppBar(
                 context: context,
                 title: Text(s.completedReportAppTitle),
-                actions: const [
-                  LanguageMenuButton(),
-                ],
               ),
               body: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

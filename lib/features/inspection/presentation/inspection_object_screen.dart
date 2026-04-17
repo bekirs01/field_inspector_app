@@ -8,7 +8,6 @@ import 'package:record/record.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../../../core/util/mock_uuid.dart';
 import '../../tasks/data/inspector_task_session.dart';
 import '../data/inspection_last_submit_cache.dart';
@@ -869,7 +868,6 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
             title: Text(
               isEdit ? s.inspectionObjectEditTitle : s.inspectionObjectAppTitle,
             ),
-            actions: const [LanguageMenuButton()],
           ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

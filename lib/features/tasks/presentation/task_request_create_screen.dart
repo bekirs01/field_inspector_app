@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/localization/app_language.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/language_controller.dart';
-import '../../../core/localization/language_menu_button.dart';
 import '../data/equipment_nodes_repository.dart';
 import '../data/inspection_task_request_service.dart';
 import 'widgets/equipment_nodes_picker.dart';
@@ -87,15 +87,6 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
   String _requestTypeKey() =>
       _requestTypeKeys[_requestTypeIndex.clamp(0, _requestTypeKeys.length - 1)];
 
-  String? _preferredDueIso() {
-    final d = _preferredDueDate;
-    if (d == null) return null;
-    final y = d.year.toString().padLeft(4, '0');
-    final m = d.month.toString().padLeft(2, '0');
-    final day = d.day.toString().padLeft(2, '0');
-    return '$y-$m-$day';
-  }
-
   String _pickedDateLabel(AppStrings s, DateTime d) {
     final dd = d.day.toString().padLeft(2, '0');
     final mm = d.month.toString().padLeft(2, '0');
@@ -109,25 +100,36 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
     }
   }
 
-  String _errorMessage(AppStrings s, String code) {
+  String _requestErrorMessage(AppStrings s, String code) {
     switch (code) {
+      case 'no_auth_session':
+        return s.taskRequestErrorNoAuthSession;
+      case 'profile_missing':
+        return s.taskRequestErrorProfileMissing;
+      case 'supabase_not_configured':
+        return s.taskRequestErrorSupabaseNotConfigured;
+      case 'rls_denied':
+        return s.taskRequestErrorRlsDenied;
+      case 'schema_mismatch':
+        return s.taskRequestErrorSchemaMismatch;
+      case 'network':
+        return s.taskRequestErrorNetwork;
+      case 'validation_title':
+        return s.taskRequestValidationNeedTitle;
+      case 'validation_description':
+        return s.taskRequestValidationNeedDescription;
+      case 'validation_priority':
+      case 'validation_request_type':
+        return s.taskRequestErrorInsert;
+      case 'insert_failed':
+        return s.taskRequestErrorInsert;
       case 'no_worker':
         return s.taskRequestErrorNoWorker;
       case 'not_ready':
         return s.taskRequestErrorNotReady;
-      case 'insert_failed':
-        return s.taskRequestErrorInsert;
       default:
-        return s.taskRequestErrorInsert;
+        return s.taskRequestErrorUnknown;
     }
-  }
-
-  String _buildTitle(AppStrings s) {
-    final issue = _issueSummary.text.trim();
-    if (issue.isNotEmpty) {
-      return issue.length > 120 ? '${issue.substring(0, 117)}…' : issue;
-    }
-    return s.taskRequestAutoTitleInspection(_selectedEquipmentIds.length);
   }
 
   String _composeDescriptionBody(AppStrings s, SiteAreaDerived derived) {
@@ -180,6 +182,8 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
     final s = context.strings;
     final messenger = ScaffoldMessenger.of(context);
 
+    if (_submitting) return;
+
     if (_forest == null || _loadingForest) {
       messenger.showSnackBar(
         SnackBar(content: Text(s.taskRequestEquipmentLoading)),
@@ -198,10 +202,16 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
       );
       return;
     }
-    if (_issueSummary.text.trim().isEmpty &&
-        _detailedDescription.text.trim().isEmpty) {
+    final shortTitle = _issueSummary.text.trim();
+    if (shortTitle.isEmpty) {
       messenger.showSnackBar(
-        SnackBar(content: Text(s.taskRequestValidationNeedIssueOrDetail)),
+        SnackBar(content: Text(s.taskRequestValidationNeedTitle)),
+      );
+      return;
+    }
+    if (_detailedDescription.text.trim().isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(s.taskRequestValidationNeedDescription)),
       );
       return;
     }
@@ -210,22 +220,24 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
       _selectedEquipmentIds,
       _forest!.byId,
     );
-    final title = _buildTitle(s);
     final descriptionBody = _composeDescriptionBody(s, derived);
-    final equipmentIds = _selectedEquipmentIds.toList()..sort();
+
+    DateTime? desiredDueAt;
+    if (_preferredDueDate != null) {
+      final d = _preferredDueDate!;
+      desiredDueAt = DateTime(d.year, d.month, d.day).toUtc();
+    }
 
     setState(() => _submitting = true);
     try {
       await InspectionTaskRequestService.submitRequest(
-        title: title,
-        siteName: derived.siteName,
-        areaName: derived.areaName,
+        shortTitle: shortTitle.length > 500
+            ? '${shortTitle.substring(0, 497)}…'
+            : shortTitle,
         description: descriptionBody,
         priority: _priorityKey(),
-        equipmentNodeIds: equipmentIds,
-        issueSummary: _issueSummary.text,
         requestTypeKey: _requestTypeKey(),
-        preferredDueDateIso: _preferredDueIso(),
+        desiredDueAt: desiredDueAt,
       );
       if (!context.mounted) return;
       messenger.showSnackBar(
@@ -239,12 +251,13 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
     } on InspectionTaskRequestException catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(_errorMessage(s, e.message))),
+        SnackBar(content: Text(_requestErrorMessage(s, e.code))),
       );
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[TaskRequest] unexpected submit error $e\n$st');
       if (!context.mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(s.taskRequestErrorInsert)),
+        SnackBar(content: Text(s.taskRequestErrorUnknown)),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -400,22 +413,7 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
           s.requestTypeRepair,
         ];
 
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: buildTaskFlowAppBar(
-            context: context,
-            title: Text(
-              s.taskRequestScreenTitle,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-              ),
-            ),
-            actions: const [
-              LanguageMenuButton(),
-            ],
-          ),
-          body: ListView(
+        final formList = ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
               _equipmentSection(s, theme, colorScheme),
@@ -459,8 +457,10 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
                       return ChoiceChip(
                         label: Text(requestTypeLabels[i]),
                         selected: sel,
-                        onSelected: (_) =>
-                            setState(() => _requestTypeIndex = i),
+                        onSelected: _submitting
+                            ? null
+                            : (_) =>
+                                setState(() => _requestTypeIndex = i),
                       );
                     }),
                   ),
@@ -519,6 +519,7 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
                 theme: theme,
                 s: s,
                 index: _priorityIndex,
+                enabled: !_submitting,
                 onChanged: (i) => setState(() => _priorityIndex = i),
               ),
               const SizedBox(height: 28),
@@ -551,7 +552,31 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
                 ),
               ),
             ],
-          ),
+        );
+
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: widget.embedInMainShell
+              ? null
+              : buildTaskFlowAppBar(
+                  context: context,
+                  title: Text(
+                    s.taskRequestScreenTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+          body: widget.embedInMainShell
+              ? AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: SystemUiOverlayStyle.light,
+                  child: SafeArea(
+                    bottom: false,
+                    child: formList,
+                  ),
+                )
+              : formList,
         );
       },
     );
@@ -564,6 +589,7 @@ class _PrioritySegmented extends StatelessWidget {
     required this.theme,
     required this.s,
     required this.index,
+    required this.enabled,
     required this.onChanged,
   });
 
@@ -571,6 +597,7 @@ class _PrioritySegmented extends StatelessWidget {
   final ThemeData theme;
   final AppStrings s;
   final int index;
+  final bool enabled;
   final ValueChanged<int> onChanged;
 
   @override
@@ -592,7 +619,7 @@ class _PrioritySegmented extends StatelessWidget {
                   ? colorScheme.primary.withValues(alpha: 0.2)
                   : Colors.transparent,
               child: InkWell(
-                onTap: () => onChanged(i),
+                onTap: enabled ? () => onChanged(i) : null,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Text(
