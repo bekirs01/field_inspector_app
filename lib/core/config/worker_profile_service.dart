@@ -48,29 +48,35 @@ class WorkerProfileService {
 
   static SupabaseClient get _client => Supabase.instance.client;
 
-  static Future<WorkerProfile?> fetchCurrentProfile() async {
-    final id = WorkerIdentity.resolveWorkerUserId();
-    if (id == null || id.isEmpty) return null;
+  /// Loads `public.profiles` for a specific auth user id (e.g. `currentUser.id`).
+  static Future<WorkerProfile?> fetchProfileForUserId(String userId) async {
+    if (userId.isEmpty) return null;
     if (!_clientReady()) return null;
     try {
       final res = await _client
           .from('profiles')
           .select('id, full_name, username, employee_code, role')
-          .eq('id', id)
+          .eq('id', userId)
           .maybeSingle();
       if (res == null) return null;
       final m = Map<String, dynamic>.from(res);
       String s(dynamic v) => v?.toString() ?? '';
       return WorkerProfile(
-        id: s(m['id']).isEmpty ? id : s(m['id']),
+        id: s(m['id']).isEmpty ? userId : s(m['id']),
         fullName: s(m['full_name']),
         username: s(m['username']),
         employeeCode: s(m['employee_code']),
         role: s(m['role']),
       );
     } catch (e, st) {
-      debugPrint('[WorkerProfile] fetch failed $e\n$st');
+      debugPrint('[WorkerProfile] fetchProfileForUserId failed $e\n$st');
       return null;
     }
+  }
+
+  static Future<WorkerProfile?> fetchCurrentProfile() async {
+    final id = WorkerIdentity.resolveWorkerUserId();
+    if (id == null || id.isEmpty) return null;
+    return fetchProfileForUserId(id);
   }
 }

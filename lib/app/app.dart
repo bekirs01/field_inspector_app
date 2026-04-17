@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/localization/language_controller.dart';
 import '../core/theme/app_theme.dart';
-import '../features/auth/presentation/login_screen.dart';
+import 'session_gate.dart';
 
 class FieldInspectorApp extends StatelessWidget {
   const FieldInspectorApp({super.key});
@@ -18,7 +18,7 @@ class FieldInspectorApp extends StatelessWidget {
           title: s.appMaterialTitle,
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
-          home: const LoginScreen(),
+          home: const SessionGate(),
         );
       },
     );

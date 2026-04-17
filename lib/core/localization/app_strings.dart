@@ -7,7 +7,22 @@ class AppStrings {
     required this.loginTitle,
     required this.loginSubtitle,
     required this.loginDescription,
+    required this.loginDevPathWithoutSession,
     required this.loginContinueToTasks,
+    required this.authLabelEmail,
+    required this.authLabelPassword,
+    required this.authHintEmail,
+    required this.authHintPassword,
+    required this.authSignInButton,
+    required this.authSignOutButton,
+    required this.authSignInFailed,
+    required this.authAnonymousNotWorkerWarning,
+    required this.authFillEmailPassword,
+    required this.loginDevBypassButton,
+    required this.tasksAppBarSignOut,
+    required this.authLoadingWorkerProfile,
+    required this.workerProfileRequiredTitle,
+    required this.workerProfileRequiredMessage,
     required this.tasksAppTitle,
     required this.tasksSectionAssignedRounds,
     required this.statusInProgress,
@@ -67,6 +82,7 @@ class AppStrings {
     required this.r2i3n,
     required this.r2i3s,
     required this.inspectionObjectAppTitle,
+    required this.inspectionRouteItemUnavailable,
     required this.labelZone,
     required this.sectionChecklist,
     required this.checklistItemVisualOk,
@@ -166,6 +182,9 @@ class AppStrings {
     required this.tasksDemoSectionDebugHint,
     required this.workerDevWorkerIdBadge,
     required this.workerProfileNotInDatabase,
+    required this.workerProfileMissingAuthenticated,
+    required this.labelEquipmentCode,
+    required this.labelAssignmentStatus,
     required this.sectionTaskInstructions,
     required this.tasksRetry,
     required this.workerSectionTitle,
@@ -194,7 +213,22 @@ class AppStrings {
   final String loginTitle;
   final String loginSubtitle;
   final String loginDescription;
+  final String loginDevPathWithoutSession;
   final String loginContinueToTasks;
+  final String authLabelEmail;
+  final String authLabelPassword;
+  final String authHintEmail;
+  final String authHintPassword;
+  final String authSignInButton;
+  final String authSignOutButton;
+  final String authSignInFailed;
+  final String authAnonymousNotWorkerWarning;
+  final String authFillEmailPassword;
+  final String loginDevBypassButton;
+  final String tasksAppBarSignOut;
+  final String authLoadingWorkerProfile;
+  final String workerProfileRequiredTitle;
+  final String workerProfileRequiredMessage;
   final String tasksAppTitle;
   final String tasksSectionAssignedRounds;
   final String statusInProgress;
@@ -254,6 +288,7 @@ class AppStrings {
   final String r2i3n;
   final String r2i3s;
   final String inspectionObjectAppTitle;
+  final String inspectionRouteItemUnavailable;
   final String labelZone;
   final String sectionChecklist;
   final String checklistItemVisualOk;
@@ -353,6 +388,9 @@ class AppStrings {
   final String tasksDemoSectionDebugHint;
   final String workerDevWorkerIdBadge;
   final String workerProfileNotInDatabase;
+  final String workerProfileMissingAuthenticated;
+  final String labelEquipmentCode;
+  final String labelAssignmentStatus;
   final String sectionTaskInstructions;
   final String tasksRetry;
   final String workerSectionTitle;
@@ -384,6 +422,21 @@ class AppStrings {
         return '$minutes dk';
       case AppLanguage.en:
         return '$minutes min';
+    }
+  }
+
+  /// Local calendar date for task due (stored as timestamptz).
+  String formatDueDate(DateTime utc) {
+    final d = utc.toLocal();
+    final dd = d.day.toString().padLeft(2, '0');
+    final mm = d.month.toString().padLeft(2, '0');
+    final yyyy = d.year.toString();
+    switch (language) {
+      case AppLanguage.ru:
+      case AppLanguage.tr:
+        return '$dd.$mm.$yyyy';
+      case AppLanguage.en:
+        return '$mm/$dd/$yyyy';
     }
   }
 
@@ -459,8 +512,26 @@ const AppStrings _ru = AppStrings(
   loginTitle: 'Мобильный обходчик',
   loginSubtitle: 'Контроль оборудования и обходы',
   loginDescription:
-      'Режим разработки: полноценный вход исполнителя ещё не подключён. Список назначенных задач появится после настройки учётной записи и Supabase.',
+      'Войдите почтой и паролем исполнителя (учётная запись создаётся администратором в Supabase). Тогда задачи загрузятся из назначений.',
+  loginDevPathWithoutSession:
+      'Сессия Supabase не активна: ниже — путь для разработки (например DEV_WORKER_USER_ID). Рабочий режим — после входа исполнителя.',
   loginContinueToTasks: 'Перейти к задачам',
+  authLabelEmail: 'Эл. почта',
+  authLabelPassword: 'Пароль',
+  authHintEmail: 'worker@company.com',
+  authHintPassword: '••••••••',
+  authSignInButton: 'Войти',
+  authSignOutButton: 'Выйти из аккаунта',
+  authSignInFailed: 'Не удалось войти. Проверьте почту и пароль.',
+  authAnonymousNotWorkerWarning:
+      'Активна анонимная сессия — это не учётная запись исполнителя. Выйдите и войдите почтой и паролем, как задал администратор.',
+  authFillEmailPassword: 'Введите почту и пароль',
+  loginDevBypassButton: 'Отладка: обход с DEV_WORKER_USER_ID',
+  tasksAppBarSignOut: 'Выйти',
+  authLoadingWorkerProfile: 'Загрузка профиля исполнителя…',
+  workerProfileRequiredTitle: 'Профиль не найден',
+  workerProfileRequiredMessage:
+      'Для этой учётной записи нет строки в profiles. Администратор должен создать профиль с тем же id, что и в Supabase Auth. Выйдите и войдите снова после исправления.',
   tasksAppTitle: 'Задачи',
   tasksSectionAssignedRounds: 'Назначенные обходы',
   statusInProgress: 'В процессе',
@@ -521,6 +592,8 @@ const AppStrings _ru = AppStrings(
   r2i3n: 'Щит управления ШУ-2',
   r2i3s: 'Корпус 2, щитовая',
   inspectionObjectAppTitle: 'Осмотр объекта',
+  inspectionRouteItemUnavailable:
+      'Позиция маршрута недоступна. Вернитесь к маршруту и откройте объект снова.',
   labelZone: 'Зона',
   sectionChecklist: 'Чек-лист',
   checklistItemVisualOk: 'Внешнее состояние в норме',
@@ -555,7 +628,7 @@ const AppStrings _ru = AppStrings(
   removePhotoButton: 'Удалить',
   snackbarPhotoLimitReached: 'Можно добавить не более 3 фото',
   photoPreviewClose: 'Закрыть',
-  photoPreviewDemoCaption: 'Демо-предпросмотр',
+  photoPreviewDemoCaption: 'Локальное вложение (предпросмотр)',
   voiceNoteSectionTitle: 'Голосовая заметка',
   voiceStartRecording: 'Начать запись',
   voiceStopRecording: 'Остановить',
@@ -629,6 +702,10 @@ const AppStrings _ru = AppStrings(
       'Только в сборке отладки: пример данных, не реальные назначения.',
   workerDevWorkerIdBadge: 'Режим DEV_WORKER_USER_ID',
   workerProfileNotInDatabase: 'Профиль в базе не найден',
+  workerProfileMissingAuthenticated:
+      'В таблице profiles нет строки для этого пользователя. Администратор должен создать профиль исполнителя с тем же id, что и в Supabase Auth.',
+  labelEquipmentCode: 'Код оборудования',
+  labelAssignmentStatus: 'Статус назначения',
   sectionTaskInstructions: 'Инструкции',
   tasksRetry: 'Повторить',
   workerSectionTitle: 'Исполнитель',
@@ -658,8 +735,26 @@ const AppStrings _tr = AppStrings(
   loginTitle: 'Mobil saha denetçisi',
   loginSubtitle: 'Ekipman kontrolü ve turlar',
   loginDescription:
-      'Geliştirme modu: tam işçi oturumu henüz yok. Atanan görevler, hesap ve Supabase yapılandırılınca listelenir.',
+      'Yöneticinin Supabase’te oluşturduğu işçi e-postası ve şifresiyle giriş yapın. Görevler atamalardan yüklenir.',
+  loginDevPathWithoutSession:
+      'Supabase oturumu yok: aşağıdaki yol geliştirme içindir (ör. DEV_WORKER_USER_ID). Gerçek kullanım için işçi girişi gerekir.',
   loginContinueToTasks: 'Görevlere devam et',
+  authLabelEmail: 'E-posta',
+  authLabelPassword: 'Şifre',
+  authHintEmail: 'isci@sirket.com',
+  authHintPassword: '••••••••',
+  authSignInButton: 'Giriş yap',
+  authSignOutButton: 'Oturumu kapat',
+  authSignInFailed: 'Giriş başarısız. E-posta ve şifreyi kontrol edin.',
+  authAnonymousNotWorkerWarning:
+      'Anonim oturum açık — bu geçerli bir işçi hesabı değil. Çıkış yapıp yöneticinin verdiği e-posta ve şifre ile girin.',
+  authFillEmailPassword: 'E-posta ve şifre girin',
+  loginDevBypassButton: 'Hata ayıklama: DEV_WORKER_USER_ID ile devam',
+  tasksAppBarSignOut: 'Çıkış',
+  authLoadingWorkerProfile: 'İşçi profili yükleniyor…',
+  workerProfileRequiredTitle: 'Profil bulunamadı',
+  workerProfileRequiredMessage:
+      'Bu hesap için profiles tablosunda kayıt yok. Yönetici, Supabase Auth ile aynı id’de profil oluşturmalı. Düzeltmeden sonra çıkış yapıp tekrar girin.',
   tasksAppTitle: 'Görevler',
   tasksSectionAssignedRounds: 'Atanmış görevler',
   statusInProgress: 'Devam ediyor',
@@ -720,6 +815,8 @@ const AppStrings _tr = AppStrings(
   r2i3n: 'Kontrol panosu ŞU-2',
   r2i3s: 'Bina 2, pano odası',
   inspectionObjectAppTitle: 'Ekipman kontrolü',
+  inspectionRouteItemUnavailable:
+      'Güzergâh öğesi kullanılamıyor. Güzergâha dönüp nesneyi yeniden açın.',
   labelZone: 'Bölge',
   sectionChecklist: 'Kontrol listesi',
   checklistItemVisualOk: 'Görsel durum normal',
@@ -754,7 +851,7 @@ const AppStrings _tr = AppStrings(
   removePhotoButton: 'Sil',
   snackbarPhotoLimitReached: 'En fazla 3 fotoğraf eklenebilir',
   photoPreviewClose: 'Kapat',
-  photoPreviewDemoCaption: 'Demo önizleme',
+  photoPreviewDemoCaption: 'Yerel ek önizlemesi',
   voiceNoteSectionTitle: 'Ses notu',
   voiceStartRecording: 'Kayda başla',
   voiceStopRecording: 'Durdur',
@@ -828,6 +925,10 @@ const AppStrings _tr = AppStrings(
       'Yalnızca hata ayıklama derlemesi: örnek veri, gerçek atama değil.',
   workerDevWorkerIdBadge: 'DEV_WORKER_USER_ID modu',
   workerProfileNotInDatabase: 'Veritabanında profil yok',
+  workerProfileMissingAuthenticated:
+      'profiles tablosunda bu kullanıcı için kayıt yok. Yönetici, Supabase Auth ile aynı id’de işçi profili oluşturmalı.',
+  labelEquipmentCode: 'Ekipman kodu',
+  labelAssignmentStatus: 'Atama durumu',
   sectionTaskInstructions: 'Talimatlar',
   tasksRetry: 'Yenile',
   workerSectionTitle: 'İşçi',
@@ -857,8 +958,26 @@ const AppStrings _en = AppStrings(
   loginTitle: 'Mobile field inspector',
   loginSubtitle: 'Equipment control and rounds',
   loginDescription:
-      'Development mode: full worker sign-in is not wired yet. Assigned tasks appear after the worker account and Supabase are configured.',
+      'Sign in with the worker email and password your admin created in Supabase. Assigned tasks load from the database.',
+  loginDevPathWithoutSession:
+      'No Supabase session: the button below is a development path (e.g. DEV_WORKER_USER_ID). Production use requires worker sign-in.',
   loginContinueToTasks: 'Continue to tasks',
+  authLabelEmail: 'Email',
+  authLabelPassword: 'Password',
+  authHintEmail: 'worker@company.com',
+  authHintPassword: '••••••••',
+  authSignInButton: 'Sign in',
+  authSignOutButton: 'Sign out',
+  authSignInFailed: 'Sign-in failed. Check email and password.',
+  authAnonymousNotWorkerWarning:
+      'You are signed in anonymously — not as a worker account. Sign out and sign in with the email and password your admin created.',
+  authFillEmailPassword: 'Enter email and password',
+  loginDevBypassButton: 'Debug: continue with DEV_WORKER_USER_ID',
+  tasksAppBarSignOut: 'Sign out',
+  authLoadingWorkerProfile: 'Loading worker profile…',
+  workerProfileRequiredTitle: 'Profile not found',
+  workerProfileRequiredMessage:
+      'There is no profiles row for this account. An admin must create a profile with the same id as in Supabase Auth. Sign out and try again after it is fixed.',
   tasksAppTitle: 'Tasks',
   tasksSectionAssignedRounds: 'Assigned tasks',
   statusInProgress: 'In progress',
@@ -919,6 +1038,8 @@ const AppStrings _en = AppStrings(
   r2i3n: 'Control panel CP-2',
   r2i3s: 'Building 2, switchgear room',
   inspectionObjectAppTitle: 'Object inspection',
+  inspectionRouteItemUnavailable:
+      'This route item is unavailable. Return to the route and open the object again.',
   labelZone: 'Zone',
   sectionChecklist: 'Checklist',
   checklistItemVisualOk: 'Visual condition is normal',
@@ -953,7 +1074,7 @@ const AppStrings _en = AppStrings(
   removePhotoButton: 'Remove',
   snackbarPhotoLimitReached: 'You can add up to 3 photos',
   photoPreviewClose: 'Close',
-  photoPreviewDemoCaption: 'Demo preview',
+  photoPreviewDemoCaption: 'Local attachment preview',
   voiceNoteSectionTitle: 'Voice note',
   voiceStartRecording: 'Start recording',
   voiceStopRecording: 'Stop',
@@ -1027,6 +1148,10 @@ const AppStrings _en = AppStrings(
       'Debug build only: sample data, not real assignments.',
   workerDevWorkerIdBadge: 'DEV_WORKER_USER_ID mode',
   workerProfileNotInDatabase: 'No profile row in database',
+  workerProfileMissingAuthenticated:
+      'There is no profiles row for this account. An admin must create a worker profile with the same id as in Supabase Auth.',
+  labelEquipmentCode: 'Equipment code',
+  labelAssignmentStatus: 'Assignment status',
   sectionTaskInstructions: 'Instructions',
   tasksRetry: 'Retry',
   workerSectionTitle: 'Worker',

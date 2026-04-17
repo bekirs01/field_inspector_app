@@ -8,24 +8,49 @@ import 'app_env.dart';
 class WorkerIdentity {
   WorkerIdentity._();
 
-  /// Returns `null` when neither auth nor dev override is available.
+  /// True when the signed-in user is a **non-anonymous** Supabase account.
+  /// Anonymous JWTs (e.g. from [signInAnonymously]) are not a worker identity.
+  static bool hasAuthenticatedWorkerSession() {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return false;
+      if (user.isAnonymous) return false;
+      return user.id.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// `auth.currentUser.id` only for **non-anonymous** sessions; otherwise
+  /// [AppEnv.devWorkerUserId] if set, else `null`.
+  ///
+  /// Anonymous ids must not be used for `inspection_task_assignments` — they
+  /// will not match `profiles.id` or admin-created assignments.
   static String? resolveWorkerUserId() {
     try {
-      final uid = Supabase.instance.client.auth.currentUser?.id;
-      if (uid != null && uid.isNotEmpty) return uid;
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null && !user.isAnonymous) {
+        final uid = user.id;
+        if (uid.isNotEmpty) return uid;
+      }
     } catch (_) {}
     final dev = AppEnv.devWorkerUserId.trim();
     if (dev.isNotEmpty) return dev;
     return null;
   }
 
-  /// True when [resolveWorkerUserId] uses [AppEnv.devWorkerUserId] because there
-  /// is no authenticated Supabase user session.
+  /// True when using [AppEnv.devWorkerUserId] (no real worker session).
   static bool isDevWorkerUserIdActive() {
-    try {
-      final uid = Supabase.instance.client.auth.currentUser?.id;
-      if (uid != null && uid.isNotEmpty) return false;
-    } catch (_) {}
+    if (hasAuthenticatedWorkerSession()) return false;
     return AppEnv.devWorkerUserId.trim().isNotEmpty;
+  }
+
+  /// Whether the current session is an anonymous Supabase user.
+  static bool hasAnonymousSession() {
+    try {
+      return Supabase.instance.client.auth.currentUser?.isAnonymous ?? false;
+    } catch (_) {
+      return false;
+    }
   }
 }

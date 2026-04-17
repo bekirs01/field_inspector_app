@@ -34,6 +34,7 @@ DemoTaskPublicState demoStateFromAssignmentExecution(String? raw) {
       return DemoTaskPublicState.completed;
     case 'completed_with_issues':
       return DemoTaskPublicState.completedWithIssues;
+    case 'assigned':
     case 'not_started':
     case 'pending':
     default:

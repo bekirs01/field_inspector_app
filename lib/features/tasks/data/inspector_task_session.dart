@@ -10,12 +10,14 @@ class InspectorRouteItemRow {
     required this.equipmentName,
     required this.equipmentLocation,
     required this.sortOrder,
+    this.equipmentCode = '',
   });
 
   final String id;
   final String equipmentName;
   final String equipmentLocation;
   final int sortOrder;
+  final String equipmentCode;
 }
 
 /// Everything the mobile flow needs for one task (mock or Supabase-backed).
@@ -36,6 +38,8 @@ class InspectorTaskSession {
     required this.items,
     this.remoteStatusRaw,
     this.instructions,
+    this.remoteSiteName,
+    this.remoteAreaName,
   });
 
   /// Stable key for in-memory completion store (`mock_0` or real task UUID).
@@ -54,6 +58,8 @@ class InspectorTaskSession {
   final List<InspectorRouteItemRow> items;
   final String? remoteStatusRaw;
   final String? instructions;
+  final String? remoteSiteName;
+  final String? remoteAreaName;
 
   int get routeItemCount => items.length;
 
@@ -95,6 +101,8 @@ class InspectorTaskSession {
       ),
       remoteStatusRaw: null,
       instructions: null,
+      remoteSiteName: null,
+      remoteAreaName: null,
     );
   }
 
@@ -139,9 +147,14 @@ class InspectorTaskSession {
     final shift = str(taskRow['shift_label']);
     String shiftOrDue = shift;
     if (shiftOrDue.isEmpty) {
-      final due = taskRow['due_at'];
-      if (due != null && str(due).isNotEmpty) {
-        shiftOrDue = '${s.labelDueAt}: ${str(due)}';
+      final dueRaw = taskRow['due_at'];
+      if (dueRaw != null && str(dueRaw).isNotEmpty) {
+        final dueDt = DateTime.tryParse(str(dueRaw))?.toUtc();
+        if (dueDt != null) {
+          shiftOrDue = '${s.labelDueAt}: ${s.formatDueDate(dueDt)}';
+        } else {
+          shiftOrDue = '${s.labelDueAt}: ${str(dueRaw)}';
+        }
       } else {
         shiftOrDue = s.tasksScheduleNotSpecified;
       }
@@ -161,6 +174,7 @@ class InspectorTaskSession {
         id: str(r['id']),
         equipmentName: str(r['equipment_name']),
         equipmentLocation: str(r['equipment_location']),
+        equipmentCode: str(r['equipment_code']),
         sortOrder: r['sort_order'] is num
             ? (r['sort_order'] as num).toInt()
             : int.tryParse('${r['sort_order']}') ?? 0,
@@ -183,6 +197,8 @@ class InspectorTaskSession {
       items: items,
       remoteStatusRaw: str(taskRow['status']).isEmpty ? null : str(taskRow['status']),
       instructions: str(taskRow['instructions']).isEmpty ? null : str(taskRow['instructions']),
+      remoteSiteName: site.isEmpty ? null : site,
+      remoteAreaName: area.isEmpty ? null : area,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/worker_identity.dart';
 import '../../../core/config/worker_profile_service.dart';
@@ -89,61 +90,67 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final s = context.strings;
     final store = DemoTaskCompletionStore.instance;
     final lang = context.languageController;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(s.tasksAppTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.assignment_add),
-            tooltip: s.taskRequestActionTooltip,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => const TaskRequestCreateScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: s.tasksRetry,
-            onPressed: _reload,
-          ),
-          const LanguageMenuButton(),
-        ],
-      ),
-      body: FutureBuilder<_TaskListPageData>(
-        future: _loadFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text(
-                    s.tasksLoading,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+    return ListenableBuilder(
+      listenable: Listenable.merge([lang, store]),
+      builder: (context, _) {
+        final s = context.strings;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(s.tasksAppTitle),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.assignment_add),
+                tooltip: s.taskRequestActionTooltip,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => const TaskRequestCreateScreen(),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            );
-          }
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: s.tasksRetry,
+                onPressed: _reload,
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: s.tasksAppBarSignOut,
+                onPressed: () async {
+                  await Supabase.instance.client.auth.signOut();
+                },
+              ),
+              const LanguageMenuButton(),
+            ],
+          ),
+          body: FutureBuilder<_TaskListPageData>(
+            future: _loadFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        s.tasksLoading,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-          final page = snapshot.data!;
-          final load = page.load;
-          final profile = page.profile;
-
-          return ListenableBuilder(
-            listenable: Listenable.merge([store, lang]),
-            builder: (context, _) {
+              final page = snapshot.data!;
+              final load = page.load;
+              final profile = page.profile;
               final sNow = context.strings;
               final realSessions = _realSessions(load, sNow);
               final hasRealTasks = realSessions.isNotEmpty;
@@ -151,7 +158,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
               final remoteSucceeded = err == null;
               final showError = err != null;
               final showEmptyAssigned = remoteSucceeded && !hasRealTasks;
-              final showDemoSection = kDebugMode && !hasRealTasks;
+              final showDemoSection = kDebugMode &&
+                  !hasRealTasks &&
+                  !WorkerIdentity.hasAuthenticatedWorkerSession();
 
               final errLine = _errorLine(sNow, err);
 
@@ -255,9 +264,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 children: children,
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -350,12 +359,18 @@ class _WorkerContextCard extends StatelessWidget {
         ]);
       }
     } else {
+      final authMissingProfile =
+          WorkerIdentity.hasAuthenticatedWorkerSession();
       body.addAll([
         const SizedBox(height: 8),
         Text(
-          s.workerProfileNotInDatabase,
+          authMissingProfile
+              ? s.workerProfileMissingAuthenticated
+              : s.workerProfileNotInDatabase,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+            color: authMissingProfile
+                ? colorScheme.error
+                : colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 4),

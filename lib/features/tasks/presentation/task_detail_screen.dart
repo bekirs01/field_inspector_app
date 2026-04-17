@@ -36,13 +36,14 @@ class TaskDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final s = context.strings;
     final store = DemoTaskCompletionStore.instance;
+    final lang = context.languageController;
     final baseline = session.baselineState();
 
     return ListenableBuilder(
-      listenable: store,
+      listenable: Listenable.merge([store, lang]),
       builder: (context, _) {
+        final s = context.strings;
         final done = store.completedSnapshot(session.storeKey);
         final effective = store.effectiveState(
           storeKey: session.storeKey,
@@ -84,20 +85,59 @@ class TaskDetailScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              s.labelObject,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                            if (session.isRemote &&
+                                (session.remoteSiteName != null ||
+                                    session.remoteAreaName != null)) ...[
+                              if (session.remoteSiteName != null &&
+                                  session.remoteSiteName!.isNotEmpty) ...[
+                                Text(
+                                  s.labelRequestSiteName,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  session.remoteSiteName!,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              if (session.remoteAreaName != null &&
+                                  session.remoteAreaName!.isNotEmpty) ...[
+                                Text(
+                                  s.labelRequestAreaName,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  session.remoteAreaName!,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                            ] else ...[
+                              Text(
+                                s.labelObject,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              session.siteAreaLine,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurface,
+                              const SizedBox(height: 4),
+                              Text(
+                                session.siteAreaLine,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.onSurface,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
+                              const SizedBox(height: 12),
+                            ],
                             Text(
                               s.labelStatus,
                               style: theme.textTheme.labelMedium?.copyWith(
@@ -112,6 +152,30 @@ class TaskDetailScreen extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                            if (session.isRemote &&
+                                session.assignmentExecutionStatusRaw != null &&
+                                session
+                                    .assignmentExecutionStatusRaw!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                s.labelAssignmentStatus,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                s.taskStateLabel(
+                                  demoStateFromAssignmentExecution(
+                                    session.assignmentExecutionStatusRaw,
+                                  ),
+                                ),
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             Text(
                               s.labelShift,
@@ -266,6 +330,23 @@ class TaskDetailScreen extends StatelessWidget {
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
+                                if (session
+                                    .items[i].equipmentCode.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    s.labelEquipmentCode,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    session.items[i].equipmentCode,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

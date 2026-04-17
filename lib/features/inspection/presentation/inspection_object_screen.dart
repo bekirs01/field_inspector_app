@@ -100,8 +100,45 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
         items[widget.routeItemIndex].id.isNotEmpty) {
       return items[widget.routeItemIndex].id;
     }
+    if (widget.session.isRemote) {
+      return '';
+    }
     final m = widget.session.mockTaskIndex ?? 0;
     return mockUuidFromSeed('equip|$m|${widget.routeItemIndex}');
+  }
+
+  bool get _routeItemValid {
+    final items = widget.session.items;
+    final i = widget.routeItemIndex;
+    return i >= 0 && i < items.length;
+  }
+
+  String _nonEmptyOr(String value, String fallback) {
+    final t = value.trim();
+    return t.isEmpty ? fallback : value;
+  }
+
+  InspectorRouteItemRow _displayItemForUi(AppStrings s) {
+    final items = widget.session.items;
+    final i = widget.routeItemIndex;
+    if (i >= 0 && i < items.length) {
+      final raw = items[i];
+      return InspectorRouteItemRow(
+        id: raw.id,
+        equipmentName: _nonEmptyOr(raw.equipmentName, s.tasksUntitledTask),
+        equipmentLocation:
+            _nonEmptyOr(raw.equipmentLocation, s.tasksScheduleNotSpecified),
+        equipmentCode: raw.equipmentCode,
+        sortOrder: raw.sortOrder,
+      );
+    }
+    return InspectorRouteItemRow(
+      id: '',
+      equipmentName: s.tasksUntitledTask,
+      equipmentLocation: s.tasksScheduleNotSpecified,
+      equipmentCode: '',
+      sortOrder: 0,
+    );
   }
 
   @override
@@ -179,10 +216,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: AspectRatio(
                   aspectRatio: 4 / 3,
-                  child: Image.file(
-                    File(file.path),
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.file(File(file.path), fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(height: 12),
@@ -233,9 +267,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     } catch (e, st) {
       debugPrint('[InspectionVoice] FAIL step=startRecording error=$e\n$st');
       if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorUnknownSave)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorUnknownSave)));
     }
   }
 
@@ -255,9 +287,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
         _voiceFilePath = resolved;
       });
       debugPrint('[InspectionVoice] step=stopRecording ok path=$resolved');
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.snackbarVoiceNoteAdded)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.snackbarVoiceNoteAdded)));
     } else {
       debugPrint(
         '[InspectionVoice] FAIL step=stopRecording no file resolved=$resolved',
@@ -266,9 +296,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
         _isVoiceRecording = false;
         _voiceFilePath = null;
       });
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorRecordingNotFound)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorRecordingNotFound)));
     }
   }
 
@@ -295,9 +323,9 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     setState(() {
       _localDraftRevision++;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(s.snackbarLocalSaveSuccess)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.snackbarLocalSaveSuccess)));
   }
 
   String _userMessageForSaveFailure(AppStrings s, InspectionSaveFailure f) {
@@ -345,6 +373,13 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     final s = context.strings;
     final messenger = ScaffoldMessenger.of(context);
 
+    if (!_routeItemValid) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(s.inspectionRouteItemUnavailable)),
+      );
+      return;
+    }
+
     final hasVoicePath = _voiceFilePath != null;
     debugPrint(
       '[InspectionSubmit] step=1_collectScreenState defect=$_defectFound '
@@ -356,9 +391,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     final equipmentId = _equipmentIdForSave();
     if (taskId.trim().isEmpty) {
       debugPrint('[InspectionSubmit] FAIL step=2_validateIds missing taskId');
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorMissingTaskId)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorMissingTaskId)));
       return;
     }
     if (equipmentId.trim().isEmpty) {
@@ -376,13 +409,11 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       'equipmentLen=${equipmentId.length}',
     );
 
-    if (_defectFound && _isVoiceRecording) {
+    if (_isVoiceRecording) {
       debugPrint(
         '[InspectionSubmit] FAIL step=7_prepareAudioFile recording still active',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorSaveFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
       return;
     }
 
@@ -404,9 +435,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint(
         '[InspectionSubmit] FAIL step=3_prepareChecklistPayload error=$e\n$st',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorSaveFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
       return;
     }
 
@@ -422,17 +451,14 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint(
         '[InspectionSubmit] FAIL step=4_prepareMeasurementPayload error=$e\n$st',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorSaveFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
       return;
     }
 
     late final String defectDescription;
     late final String defectPriority;
     try {
-      defectDescription =
-          _defectFound ? _defectDescriptionController.text : '';
+      defectDescription = _defectFound ? _defectDescriptionController.text : '';
       defectPriority = _defectFound ? _defectPriorityKey() : '';
       debugPrint(
         '[InspectionSubmit] step=5_prepareDefectPayload defectFound=$_defectFound',
@@ -441,9 +467,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint(
         '[InspectionSubmit] FAIL step=5_prepareDefectPayload error=$e\n$st',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorSaveFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
       return;
     }
 
@@ -457,27 +481,21 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint(
         '[InspectionSubmit] FAIL step=6_preparePhotoFiles error=$e\n$st',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorSaveFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
       return;
     }
 
     late final String? audioPathForUpload;
     try {
-      if (_defectFound) {
-        final p = _voiceFilePath?.trim();
-        if (p != null && p.isNotEmpty && File(p).existsSync()) {
-          audioPathForUpload = p;
-        } else {
-          if (p != null && p.isNotEmpty) {
-            debugPrint(
-              '[InspectionSubmit] step=7_prepareAudioFile stale path missing file=$p',
-            );
-          }
-          audioPathForUpload = null;
-        }
+      final p = _voiceFilePath?.trim();
+      if (p != null && p.isNotEmpty && File(p).existsSync()) {
+        audioPathForUpload = p;
       } else {
+        if (p != null && p.isNotEmpty) {
+          debugPrint(
+            '[InspectionSubmit] step=7_prepareAudioFile stale path missing file=$p',
+          );
+        }
         audioPathForUpload = null;
       }
       debugPrint(
@@ -487,16 +505,12 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint(
         '[InspectionSubmit] FAIL step=7_prepareAudioFile error=$e\n$st',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorSaveFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
       return;
     }
 
-    final supabaseReady =
-        InspectionSupabaseService.isSupabaseClientReady();
-    final sessionPresent =
-        InspectionSupabaseService.authSessionPresent();
+    final supabaseReady = InspectionSupabaseService.isSupabaseClientReady();
+    final sessionPresent = InspectionSupabaseService.authSessionPresent();
     debugPrint(
       '[InspectionSubmit] preRemoteSummary taskId=$taskId '
       'equipmentId=$equipmentId draftRevision=$_localDraftRevision '
@@ -525,9 +539,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint(
         '[InspectionSubmit] step=12_updateRouteProgress ok routeItemIndex=${widget.routeItemIndex}',
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.snackbarUploadSuccess)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.snackbarUploadSuccess)));
       Navigator.of(context).pop(
         InspectionObjectResult(
           hadDefect: _defectFound,
@@ -540,16 +552,12 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       debugPrint('[InspectionSubmit] FAIL remote ${e.toString()}\n$st');
       if (!context.mounted) return;
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(_userMessageForSaveFailure(s, e.failure)),
-        ),
+        SnackBar(content: Text(_userMessageForSaveFailure(s, e.failure))),
       );
     } catch (e, st) {
       debugPrint('[InspectionSubmit] FAIL remote unexpected error=$e\n$st');
       if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorUnknownSave)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(s.errorUnknownSave)));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -568,9 +576,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
       suffixText: unit,
       filled: true,
       fillColor: colorScheme.surface,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
@@ -620,8 +626,12 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     ];
   }
 
-  Widget _voiceSection(BuildContext context, ThemeData theme,
-      ColorScheme colorScheme, AppStrings s) {
+  Widget _voiceSection(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    AppStrings s,
+  ) {
     final hasFile = _voiceFilePath != null && !_isVoiceRecording;
 
     return Column(
@@ -649,8 +659,9 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                 child: Text(s.voiceStopRecording),
               ),
             TextButton(
-              onPressed:
-                  (_voiceFilePath == null && !_isVoiceRecording) ? null : _deleteVoice,
+              onPressed: (_voiceFilePath == null && !_isVoiceRecording)
+                  ? null
+                  : _deleteVoice,
               child: Text(s.voiceDeleteRecording),
             ),
           ],
@@ -660,8 +671,8 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
           _isVoiceRecording
               ? s.voiceStateRecording
               : hasFile
-                  ? s.voiceStateRecorded
-                  : '',
+              ? s.voiceStateRecorded
+              : '',
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -674,425 +685,486 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final s = context.strings;
-    final labels = _checklistLabels(s);
-    final items = widget.session.items;
-    final item = items[widget.routeItemIndex];
-    final taskTitle = widget.session.title;
+    final lang = context.languageController;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(s.inspectionObjectAppTitle),
-        actions: const [
-          LanguageMenuButton(),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          s.labelObject,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.equipmentName,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          s.labelZone,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.equipmentLocation,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          s.labelTask,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          taskTitle,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          s.labelStatus,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          s.statusInProgress,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.sectionChecklist,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < labels.length; i++)
-                        CheckboxListTile(
-                          value: _checklist[i],
-                          onChanged: (v) {
-                            setState(() {
-                              _checklist[i] = v ?? false;
-                            });
-                          },
-                          title: Text(
-                            labels[i],
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurface,
+    return ListenableBuilder(
+      listenable: lang,
+      builder: (context, _) {
+        final s = context.strings;
+        final labels = _checklistLabels(s);
+        final item = _displayItemForUi(s);
+        final taskTitle = widget.session.title;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(s.inspectionObjectAppTitle),
+            actions: const [LanguageMenuButton()],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  children: [
+                    if (!_routeItemValid) ...[
+                      Card(
+                        color: colorScheme.errorContainer,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            s.inspectionRouteItemUnavailable,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onErrorContainer,
                             ),
                           ),
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
                         ),
+                      ),
+                      const SizedBox(height: 16),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.sectionMeasurements,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _measurementField(
-                          theme: theme,
-                          colorScheme: colorScheme,
-                          s: s,
-                          label: s.labelMeasurementTemperature,
-                          unit: s.unitCelsius,
-                          controller: _temperatureController,
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.labelObject,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.equipmentName,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.labelZone,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.equipmentLocation,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.labelEquipmentCode,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _nonEmptyOr(
+                                item.equipmentCode,
+                                s.tasksScheduleNotSpecified,
+                              ),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.labelTask,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              taskTitle,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.labelStatus,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              s.statusInProgress,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        _measurementField(
-                          theme: theme,
-                          colorScheme: colorScheme,
-                          s: s,
-                          label: s.labelMeasurementPressure,
-                          unit: s.unitPressureBar,
-                          controller: _pressureController,
-                        ),
-                        _measurementField(
-                          theme: theme,
-                          colorScheme: colorScheme,
-                          s: s,
-                          label: s.labelMeasurementVibration,
-                          unit: s.unitVibrationMmS,
-                          controller: _vibrationController,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.sectionDefect,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SwitchListTile(
-                          title: Text(
-                            s.defectToggleLabel,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          value: _defectFound,
-                          onChanged: (v) {
-                            setState(() {
-                              _defectFound = v;
-                            });
-                            if (!v) {
-                              unawaited(_deleteVoice());
-                            }
-                          },
-                        ),
-                        if (_defectFound)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  s.labelDefectDescription,
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                TextField(
-                                  controller: _defectDescriptionController,
-                                  minLines: 2,
-                                  maxLines: 4,
-                                  decoration: InputDecoration(
-                                    hintText: s.hintDefectDescription,
-                                    filled: true,
-                                    fillColor: colorScheme.surface,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    contentPadding: const EdgeInsets.all(16),
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                Text(
-                                  s.labelDefectPriority,
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    ChoiceChip(
-                                      label: Text(s.priorityLow),
-                                      selected: _severityIndex == 0,
-                                      onSelected: (_) {
-                                        setState(() => _severityIndex = 0);
-                                      },
-                                    ),
-                                    ChoiceChip(
-                                      label: Text(s.priorityMedium),
-                                      selected: _severityIndex == 1,
-                                      onSelected: (_) {
-                                        setState(() => _severityIndex = 1);
-                                      },
-                                    ),
-                                    ChoiceChip(
-                                      label: Text(s.priorityHigh),
-                                      selected: _severityIndex == 2,
-                                      onSelected: (_) {
-                                        setState(() => _severityIndex = 2);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                _voiceSection(context, theme, colorScheme, s),
-                              ],
-                            ),
-                          ),
-                      ],
+                    const SizedBox(height: 20),
+                    Text(
+                      s.sectionChecklist,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.sectionPhotoEvidence,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        OutlinedButton(
-                          onPressed: _photos.length >= _maxPhotos
-                              ? null
-                              : () => _pickPhoto(context),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(s.addPhotoButton),
-                        ),
-                        if (_photos.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          for (var i = 0; i < _photos.length; i++)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Card(
-                                margin: EdgeInsets.zero,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: colorScheme.outlineVariant,
-                                  ),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Column(
+                        children: [
+                          for (var i = 0; i < labels.length; i++)
+                            CheckboxListTile(
+                              value: _checklist[i],
+                              onChanged: (v) {
+                                setState(() {
+                                  _checklist[i] = v ?? false;
+                                });
+                              },
+                              title: Text(
+                                labels[i],
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.onSurface,
                                 ),
-                                child: InkWell(
-                                  onTap: () => _showPhotoPreview(
-                                    context,
-                                    _photos[i],
-                                    i + 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: Image.file(
-                                            File(_photos[i].path),
-                                            width: 56,
-                                            height: 56,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                s.mockPhotoTitle(i + 1),
-                                                style: theme
-                                                    .textTheme.titleSmall
-                                                    ?.copyWith(
-                                                  color:
-                                                      colorScheme.onSurface,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                s.photoItemSubtitleLocal,
-                                                style: theme
-                                                    .textTheme.bodySmall
-                                                    ?.copyWith(
-                                                  color: colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => _removePhotoAt(i),
-                                          child: Text(s.removePhotoButton),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                              ),
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
                               ),
                             ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.sectionNote,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _noteController,
-                  minLines: 3,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: s.noteHint,
-                    filled: true,
-                    fillColor: colorScheme.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 20),
+                    Text(
+                      s.sectionMeasurements,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
                     ),
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: OutlinedButton(
-              onPressed: _isSaving ? null : () => _onSaveLocally(context),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _measurementField(
+                              theme: theme,
+                              colorScheme: colorScheme,
+                              s: s,
+                              label: s.labelMeasurementTemperature,
+                              unit: s.unitCelsius,
+                              controller: _temperatureController,
+                            ),
+                            _measurementField(
+                              theme: theme,
+                              colorScheme: colorScheme,
+                              s: s,
+                              label: s.labelMeasurementPressure,
+                              unit: s.unitPressureBar,
+                              controller: _pressureController,
+                            ),
+                            _measurementField(
+                              theme: theme,
+                              colorScheme: colorScheme,
+                              s: s,
+                              label: s.labelMeasurementVibration,
+                              unit: s.unitVibrationMmS,
+                              controller: _vibrationController,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      s.sectionDefect,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SwitchListTile(
+                              title: Text(
+                                s.defectToggleLabel,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              value: _defectFound,
+                              onChanged: (v) {
+                                setState(() {
+                                  _defectFound = v;
+                                });
+                              },
+                            ),
+                            if (_defectFound)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  12,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      s.labelDefectDescription,
+                                      style: theme.textTheme.labelLarge
+                                          ?.copyWith(
+                                            color: colorScheme.onSurface,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    TextField(
+                                      controller: _defectDescriptionController,
+                                      minLines: 2,
+                                      maxLines: 4,
+                                      decoration: InputDecoration(
+                                        hintText: s.hintDefectDescription,
+                                        filled: true,
+                                        fillColor: colorScheme.surface,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        contentPadding: const EdgeInsets.all(
+                                          16,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Text(
+                                      s.labelDefectPriority,
+                                      style: theme.textTheme.labelLarge
+                                          ?.copyWith(
+                                            color: colorScheme.onSurface,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        ChoiceChip(
+                                          label: Text(s.priorityLow),
+                                          selected: _severityIndex == 0,
+                                          onSelected: (_) {
+                                            setState(() => _severityIndex = 0);
+                                          },
+                                        ),
+                                        ChoiceChip(
+                                          label: Text(s.priorityMedium),
+                                          selected: _severityIndex == 1,
+                                          onSelected: (_) {
+                                            setState(() => _severityIndex = 1);
+                                          },
+                                        ),
+                                        ChoiceChip(
+                                          label: Text(s.priorityHigh),
+                                          selected: _severityIndex == 2,
+                                          onSelected: (_) {
+                                            setState(() => _severityIndex = 2);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: _voiceSection(
+                          context,
+                          theme,
+                          colorScheme,
+                          s,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      s.sectionPhotoEvidence,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            OutlinedButton(
+                              onPressed: _photos.length >= _maxPhotos
+                                  ? null
+                                  : () => _pickPhoto(context),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(s.addPhotoButton),
+                            ),
+                            if (_photos.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              for (var i = 0; i < _photos.length; i++)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Card(
+                                    margin: EdgeInsets.zero,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color: colorScheme.outlineVariant,
+                                      ),
+                                    ),
+                                    child: InkWell(
+                                      onTap: () => _showPhotoPreview(
+                                        context,
+                                        _photos[i],
+                                        i + 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Image.file(
+                                                File(_photos[i].path),
+                                                width: 56,
+                                                height: 56,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    s.mockPhotoTitle(i + 1),
+                                                    style: theme
+                                                        .textTheme
+                                                        .titleSmall
+                                                        ?.copyWith(
+                                                          color: colorScheme
+                                                              .onSurface,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    s.photoItemSubtitleLocal,
+                                                    style: theme
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: colorScheme
+                                                              .onSurfaceVariant,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  _removePhotoAt(i),
+                                              child: Text(s.removePhotoButton),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      s.sectionNote,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _noteController,
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText: s.noteHint,
+                        filled: true,
+                        fillColor: colorScheme.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.all(16),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Text(s.saveLocallyButton),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: OutlinedButton(
+                  onPressed: _isSaving ? null : () => _onSaveLocally(context),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(s.saveLocallyButton),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: FilledButton(
+                  onPressed: (_isSaving ||
+                          !_routeItemValid ||
+                          _isVoiceRecording)
+                      ? null
+                      : () => _onComplete(context),
+                  child: _isSaving
+                      ? Text(s.completeObjectInProgress)
+                      : Text(s.completeObjectButton),
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: FilledButton(
-              onPressed: _isSaving ? null : () => _onComplete(context),
-              child: _isSaving
-                  ? Text(s.completeObjectInProgress)
-                  : Text(s.completeObjectButton),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -11,17 +11,10 @@ import '../../tasks/data/inspector_task_session.dart';
 import 'inspection_object_screen.dart';
 import 'inspection_task_summary_screen.dart';
 
-enum _RouteSlotState {
-  pending,
-  completed,
-  completedWithIssue,
-}
+enum _RouteSlotState { pending, completed, completedWithIssue }
 
 class InspectionRouteScreen extends StatefulWidget {
-  const InspectionRouteScreen({
-    super.key,
-    required this.session,
-  });
+  const InspectionRouteScreen({super.key, required this.session});
 
   final InspectorTaskSession session;
 
@@ -166,175 +159,183 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final s = context.strings;
+    final lang = context.languageController;
     final items = widget.session.items;
     final total = items.length;
     final progressValue = total == 0 ? 0.0 : _finishedCount / total;
     final pending = _firstPendingIndex();
     final allDone = pending == null && total > 0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(s.inspectionExecutionAppTitle),
-        actions: const [
-          LanguageMenuButton(),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          s.labelTask,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+    return ListenableBuilder(
+      listenable: lang,
+      builder: (context, _) {
+        final s = context.strings;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(s.inspectionExecutionAppTitle),
+            actions: const [LanguageMenuButton()],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  children: [
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.labelTask,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.session.title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.labelObject,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.session.siteAreaLine,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.labelShift,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.session.shiftOrDueLine,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.session.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          s.labelObject,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.session.siteAreaLine,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          s.labelShift,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.session.shiftOrDueLine,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.labelProgress,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progressValue,
-                    minHeight: 8,
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  s.progressObjectsChecked(_finishedCount, total),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  s.sectionInspectionObjects,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...items.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  final order = index + 1;
-                  final badgeText = _badgeText(s, index);
+                    const SizedBox(height: 20),
+                    Text(
+                      s.labelProgress,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progressValue,
+                        minHeight: 8,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.progressObjectsChecked(_finishedCount, total),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      s.sectionInspectionObjects,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...items.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final order = index + 1;
+                      final badgeText = _badgeText(s, index);
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => _openObjectAt(index),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => _openObjectAt(index),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      '$order. ${item.equipmentName}',
-                                      style:
-                                          theme.textTheme.titleSmall?.copyWith(
-                                        color: colorScheme.onSurface,
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '$order. ${item.equipmentName}',
+                                          style: theme.textTheme.titleSmall
+                                              ?.copyWith(
+                                                color: colorScheme.onSurface,
+                                              ),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        badgeText,
+                                        style: theme.textTheme.labelMedium
+                                            ?.copyWith(
+                                              color: _badgeColor(
+                                                colorScheme,
+                                                index,
+                                              ),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(height: 4),
                                   Text(
-                                    badgeText,
-                                    style:
-                                        theme.textTheme.labelMedium?.copyWith(
-                                      color: _badgeColor(colorScheme, index),
-                                      fontWeight: FontWeight.w600,
+                                    item.equipmentLocation,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                item.equipmentLocation,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: FilledButton(
+                  onPressed: allDone ? null : _openCurrentObject,
+                  child: Text(s.openCurrentObjectButton),
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: FilledButton(
-              onPressed: allDone ? null : _openCurrentObject,
-              child: Text(s.openCurrentObjectButton),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
