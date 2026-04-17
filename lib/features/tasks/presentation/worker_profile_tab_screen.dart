@@ -6,6 +6,7 @@ import '../../../core/config/worker_identity.dart';
 import '../../../core/config/worker_profile_service.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
+import 'task_chat_navigation.dart';
 /// Minimal profile tab: real worker data, language, sign-out.
 class WorkerProfileTabScreen extends StatefulWidget {
   const WorkerProfileTabScreen({super.key});
@@ -129,6 +130,33 @@ class _WorkerProfileTabScreenState extends State<WorkerProfileTabScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        color: colorScheme.primary.withValues(alpha: 0.95),
+                      ),
+                      title: Text(
+                        s.taskChatProfileEntryTitle,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        s.taskChatProfileEntrySubtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      onTap: () => openTaskChatQuickAccess(context),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

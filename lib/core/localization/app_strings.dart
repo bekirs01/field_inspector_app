@@ -275,6 +275,115 @@ class AppStrings {
     required this.taskRequestEquipmentListHeading,
     required this.taskRequestDescriptionMultipleLocationsNote,
     required this.labelTaskDuration,
+    required this.taskChatOpenAction,
+    required this.taskChatSectionTitle,
+    required this.taskChatProfileEntryTitle,
+    required this.taskChatProfileEntrySubtitle,
+    required this.taskChatContextSubtitle,
+    required this.taskChatContextStatus,
+    required this.taskChatMessageHint,
+    required this.taskChatSend,
+    required this.taskChatAttachImage,
+    required this.taskChatAttachVideo,
+    required this.taskChatAttachFile,
+    required this.taskChatAttachMenuTitle,
+    required this.taskChatSenderAdmin,
+    required this.taskChatSenderWorker,
+    required this.taskChatYou,
+    required this.taskChatPickTaskTitle,
+    required this.taskChatLoading,
+    required this.taskChatEmpty,
+    required this.taskChatNotAvailableOffline,
+    required this.taskChatAttachmentOpen,
+    required this.taskChatAttachmentImage,
+    required this.taskChatAttachmentVideo,
+    required this.taskChatAttachmentPdf,
+    required this.taskChatAttachmentFile,
+    required this.taskChatErrorMessageSendFailed,
+    required this.taskChatErrorUploadFailed,
+    required this.taskChatErrorStorageUnavailable,
+    required this.taskChatErrorUnavailable,
+    required this.taskChatErrorNoAuthSession,
+    required this.taskChatErrorNoTaskSelected,
+    required this.taskChatErrorNoActiveTasks,
+    required this.taskChatErrorUnsupportedFile,
+    required this.taskChatErrorFileTooLarge,
+    required this.taskChatPickerSectionActive,
+    required this.taskChatPickerSectionArchive,
+    required this.taskChatBadgeArchived,
+    required this.taskChatBadgeHasHistory,
+    required this.taskChatNoTasksForChat,
+    required this.taskChatUnableToLoad,
+    required this.taskChatThreadNotFound,
+    required this.taskChatReadOnlyClosedTask,
+    required this.taskChatLoadingConversationHint,
+    required this.taskChatEmptySubtitle,
+    required this.taskChatPhotoFromGallery,
+    required this.taskChatTakePhoto,
+    required this.taskChatAttachPdfDocument,
+    required this.taskChatChooseAttachment,
+    required this.taskChatErrorProfileRequired,
+    required this.taskChatErrorTimeout,
+    required this.taskChatErrorConnection,
+    required this.taskChatPermissionDenied,
+    required this.taskChatErrorAnonymousSession,
+    required this.taskChatErrorCreateThreadFailed,
+    required this.taskChatErrorDatabaseInsertFailed,
+    required this.taskChatErrorRlsInsertDenied,
+    required this.taskChatErrorServerSchemaMismatch,
+    required this.redAlertRequestEmergencyTitle,
+    required this.redAlertRequestEmergencyBody,
+    required this.redAlertRequestOpenButton,
+    required this.redAlertScreenTitle,
+    required this.redAlertLoadingCatalog,
+    required this.redAlertCatalogEmpty,
+    required this.redAlertIntroTitle,
+    required this.redAlertIntroBody,
+    required this.redAlertSelectMachine,
+    required this.redAlertMachineHint,
+    required this.redAlertMachineSearchHint,
+    required this.redAlertNoMachinesFound,
+    required this.redAlertPrefillHint,
+    required this.redAlertShortReasonLabel,
+    required this.redAlertShortReasonHint,
+    required this.redAlertDescriptionLabel,
+    required this.redAlertDescriptionHint,
+    required this.redAlertSendButton,
+    required this.redAlertConfirmTitle,
+    required this.redAlertConfirmBody,
+    required this.redAlertCancel,
+    required this.redAlertConfirmSend,
+    required this.redAlertSuccessTitle,
+    required this.redAlertSuccessBody,
+    required this.redAlertSuccessDone,
+    required this.redAlertErrorNoAuth,
+    required this.redAlertErrorNotReady,
+    required this.redAlertErrorProfileMissing,
+    required this.redAlertErrorInvalidMachine,
+    required this.redAlertErrorShortReason,
+    required this.redAlertErrorRlsDenied,
+    required this.redAlertErrorSchemaMismatch,
+    required this.redAlertErrorSendFailed,
+    required this.redAlertChooseMachineFirst,
+    required this.redAlertCatalogTaskRoute,
+    required this.redAlertCatalogEquipmentDirectory,
+    required this.redAlertTaskDetailCta,
+    required this.qrScanActionTooltip,
+    required this.qrScanScreenTitle,
+    required this.qrScanInstruction,
+    required this.qrScanRecognized,
+    required this.qrScanScannedValueLabel,
+    required this.qrScanPhase2Message,
+    required this.qrScanAgain,
+    required this.qrScanClose,
+    required this.qrScanBackTooltip,
+    required this.qrScanPermissionTitle,
+    required this.qrScanPermissionBody,
+    required this.qrScanOpenSettings,
+    required this.qrScanRetry,
+    required this.qrScanStartFailed,
+    required this.qrScanUnavailable,
+    required this.qrScanGenericErrorHint,
   });
 
   final AppLanguage language;
@@ -549,6 +658,115 @@ class AppStrings {
   final String taskRequestEquipmentListHeading;
   final String taskRequestDescriptionMultipleLocationsNote;
   final String labelTaskDuration;
+  final String taskChatOpenAction;
+  final String taskChatSectionTitle;
+  final String taskChatProfileEntryTitle;
+  final String taskChatProfileEntrySubtitle;
+  final String taskChatContextSubtitle;
+  final String taskChatContextStatus;
+  final String taskChatMessageHint;
+  final String taskChatSend;
+  final String taskChatAttachImage;
+  final String taskChatAttachVideo;
+  final String taskChatAttachFile;
+  final String taskChatAttachMenuTitle;
+  final String taskChatSenderAdmin;
+  final String taskChatSenderWorker;
+  final String taskChatYou;
+  final String taskChatPickTaskTitle;
+  final String taskChatLoading;
+  final String taskChatEmpty;
+  final String taskChatNotAvailableOffline;
+  final String taskChatAttachmentOpen;
+  final String taskChatAttachmentImage;
+  final String taskChatAttachmentVideo;
+  final String taskChatAttachmentPdf;
+  final String taskChatAttachmentFile;
+  final String taskChatErrorMessageSendFailed;
+  final String taskChatErrorUploadFailed;
+  final String taskChatErrorStorageUnavailable;
+  final String taskChatErrorUnavailable;
+  final String taskChatErrorNoAuthSession;
+  final String taskChatErrorNoTaskSelected;
+  final String taskChatErrorNoActiveTasks;
+  final String taskChatErrorUnsupportedFile;
+  final String taskChatErrorFileTooLarge;
+  final String taskChatPickerSectionActive;
+  final String taskChatPickerSectionArchive;
+  final String taskChatBadgeArchived;
+  final String taskChatBadgeHasHistory;
+  final String taskChatNoTasksForChat;
+  final String taskChatUnableToLoad;
+  final String taskChatThreadNotFound;
+  final String taskChatReadOnlyClosedTask;
+  final String taskChatLoadingConversationHint;
+  final String taskChatEmptySubtitle;
+  final String taskChatPhotoFromGallery;
+  final String taskChatTakePhoto;
+  final String taskChatAttachPdfDocument;
+  final String taskChatChooseAttachment;
+  final String taskChatErrorProfileRequired;
+  final String taskChatErrorTimeout;
+  final String taskChatErrorConnection;
+  final String taskChatPermissionDenied;
+  final String taskChatErrorAnonymousSession;
+  final String taskChatErrorCreateThreadFailed;
+  final String taskChatErrorDatabaseInsertFailed;
+  final String taskChatErrorRlsInsertDenied;
+  final String taskChatErrorServerSchemaMismatch;
+  final String redAlertRequestEmergencyTitle;
+  final String redAlertRequestEmergencyBody;
+  final String redAlertRequestOpenButton;
+  final String redAlertScreenTitle;
+  final String redAlertLoadingCatalog;
+  final String redAlertCatalogEmpty;
+  final String redAlertIntroTitle;
+  final String redAlertIntroBody;
+  final String redAlertSelectMachine;
+  final String redAlertMachineHint;
+  final String redAlertMachineSearchHint;
+  final String redAlertNoMachinesFound;
+  final String redAlertPrefillHint;
+  final String redAlertShortReasonLabel;
+  final String redAlertShortReasonHint;
+  final String redAlertDescriptionLabel;
+  final String redAlertDescriptionHint;
+  final String redAlertSendButton;
+  final String redAlertConfirmTitle;
+  final String redAlertConfirmBody;
+  final String redAlertCancel;
+  final String redAlertConfirmSend;
+  final String redAlertSuccessTitle;
+  final String redAlertSuccessBody;
+  final String redAlertSuccessDone;
+  final String redAlertErrorNoAuth;
+  final String redAlertErrorNotReady;
+  final String redAlertErrorProfileMissing;
+  final String redAlertErrorInvalidMachine;
+  final String redAlertErrorShortReason;
+  final String redAlertErrorRlsDenied;
+  final String redAlertErrorSchemaMismatch;
+  final String redAlertErrorSendFailed;
+  final String redAlertChooseMachineFirst;
+  final String redAlertCatalogTaskRoute;
+  final String redAlertCatalogEquipmentDirectory;
+  final String redAlertTaskDetailCta;
+  final String qrScanActionTooltip;
+  final String qrScanScreenTitle;
+  final String qrScanInstruction;
+  final String qrScanRecognized;
+  final String qrScanScannedValueLabel;
+  final String qrScanPhase2Message;
+  final String qrScanAgain;
+  final String qrScanClose;
+  final String qrScanBackTooltip;
+  final String qrScanPermissionTitle;
+  final String qrScanPermissionBody;
+  final String qrScanOpenSettings;
+  final String qrScanRetry;
+  final String qrScanStartFailed;
+  final String qrScanUnavailable;
+  final String qrScanGenericErrorHint;
 
   String taskRequestAutoTitleInspection(int equipmentCount) {
     switch (language) {
@@ -971,6 +1189,140 @@ const AppStrings _ru = AppStrings(
   taskRequestDescriptionMultipleLocationsNote:
       'Примечание: выбраны единицы с разных площадок или участков; поля объекта/зоны объединены.',
   labelTaskDuration: 'Длительность выполнения',
+  taskChatOpenAction: 'Чат по задаче',
+  taskChatSectionTitle: 'Связь с администратором',
+  taskChatProfileEntryTitle: 'Чаты по задачам',
+  taskChatProfileEntrySubtitle:
+      'Активные и архивные задачи, история сообщений',
+  taskChatContextSubtitle: 'Обсуждение этой задачи',
+  taskChatContextStatus: 'Статус задачи',
+  taskChatMessageHint: 'Сообщение…',
+  taskChatSend: 'Отправить',
+  taskChatAttachImage: 'Фото',
+  taskChatAttachVideo: 'Видео',
+  taskChatAttachFile: 'Файл',
+  taskChatAttachMenuTitle: 'Вложение',
+  taskChatSenderAdmin: 'Администратор',
+  taskChatSenderWorker: 'Исполнитель',
+  taskChatYou: 'Вы',
+  taskChatPickTaskTitle: 'Выберите задачу',
+  taskChatLoading: 'Загрузка чата…',
+  taskChatEmpty: 'Пока нет сообщений',
+  taskChatNotAvailableOffline: 'Чат доступен только для назначенных задач из базы',
+  taskChatAttachmentOpen: 'Открыть',
+  taskChatAttachmentImage: 'Изображение',
+  taskChatAttachmentVideo: 'Видео',
+  taskChatAttachmentPdf: 'PDF',
+  taskChatAttachmentFile: 'Файл',
+  taskChatErrorMessageSendFailed: 'Не удалось отправить сообщение',
+  taskChatErrorUploadFailed: 'Не удалось загрузить файл',
+  taskChatErrorStorageUnavailable: 'Хранилище файлов недоступно',
+  taskChatErrorUnavailable: 'Чат временно недоступен',
+  taskChatErrorNoAuthSession: 'Нет сессии. Войдите в аккаунт.',
+  taskChatErrorNoTaskSelected: 'Задача не выбрана',
+  taskChatErrorNoActiveTasks: 'Нет активных задач для чата',
+  taskChatErrorUnsupportedFile: 'Неподдерживаемый тип файла',
+  taskChatErrorFileTooLarge: 'Файл слишком большой',
+  taskChatPickerSectionActive: 'Текущие задачи',
+  taskChatPickerSectionArchive: 'Архив и история',
+  taskChatBadgeArchived: 'Архив',
+  taskChatBadgeHasHistory: 'Есть переписка',
+  taskChatNoTasksForChat: 'Нет задач для чата',
+  taskChatUnableToLoad: 'Не удалось загрузить чат',
+  taskChatThreadNotFound: 'Переписка недоступна',
+  taskChatReadOnlyClosedTask:
+      'Задача завершена — переписку можно только просматривать.',
+  taskChatLoadingConversationHint: 'Загрузка переписки…',
+  taskChatEmptySubtitle: 'Начните обсуждение этой задачи',
+  taskChatPhotoFromGallery: 'Фото из галереи',
+  taskChatTakePhoto: 'Сделать фото',
+  taskChatAttachPdfDocument: 'PDF-документ',
+  taskChatChooseAttachment: 'Выберите вложение',
+  taskChatErrorProfileRequired:
+      'Для чата нужен профиль работника. Обратитесь к администратору.',
+  taskChatErrorTimeout:
+      'Превышено время ожидания. Проверьте сеть и повторите.',
+  taskChatErrorConnection:
+      'Проблема с подключением. Повторите позже.',
+  taskChatPermissionDenied:
+      'Нет разрешения. Разрешите доступ в настройках.',
+  taskChatErrorAnonymousSession:
+      'Войдите под учётной записью исполнителя (не анонимно), чтобы писать в чат.',
+  taskChatErrorCreateThreadFailed:
+      'Не удалось создать переписку по задаче. Проверьте назначение, сеть и права доступа.',
+  taskChatErrorDatabaseInsertFailed:
+      'Сообщение не сохранено: ошибка сервера или схемы. Проверьте профиль исполнителя и политики RLS.',
+  taskChatErrorRlsInsertDenied:
+      'Отправка запрещена политикой безопасности (RLS): нет права вставлять сообщение для этой задачи или потока чата.',
+  taskChatErrorServerSchemaMismatch:
+      'Сообщение не сохранено: в таблице task_chat_messages нет столбца body (ошибка PGRST204) или схема устарела. В Supabase → SQL Editor выполните: 20260422150000_task_chat_messages_ensure_body_column.sql, затем при необходимости 20260422103000_task_chat_ensure_trigger_and_access.sql. Веб-панель должна читать тот же столбец body.',
+  redAlertRequestEmergencyTitle: 'Критический инцидент',
+  redAlertRequestEmergencyBody:
+      'Срочное сообщение в панель администратора: остановка агрегата, опасная неисправность, срочный осмотр или немедленное обслуживание.',
+  redAlertRequestOpenButton: 'Красная тревога',
+  redAlertScreenTitle: 'Красная тревога',
+  redAlertLoadingCatalog: 'Загрузка списка оборудования…',
+  redAlertCatalogEmpty:
+      'Нет доступного оборудования. Проверьте назначения или справочник.',
+  redAlertIntroTitle: 'Только для срочных случаев',
+  redAlertIntroBody:
+      'Используйте при критических ситуациях: остановка, опасная неисправность, срочный осмотр, немедленное ТО.',
+  redAlertSelectMachine: 'Выберите оборудование',
+  redAlertMachineHint: 'Нажмите, чтобы выбрать',
+  redAlertMachineSearchHint: 'Поиск по названию или задаче',
+  redAlertNoMachinesFound: 'Ничего не найдено',
+  redAlertPrefillHint:
+      'Оборудование выбрано по текущей задаче; при необходимости укажите другое.',
+  redAlertShortReasonLabel: 'Краткая причина',
+  redAlertShortReasonHint:
+      'Например: остановка насоса, утечка под давлением',
+  redAlertDescriptionLabel: 'Описание',
+  redAlertDescriptionHint: 'Что произошло, риски, что видите на месте',
+  redAlertSendButton: 'Отправить критическое оповещение',
+  redAlertConfirmTitle: 'Подтвердить отправку',
+  redAlertConfirmBody:
+      'Критическое оповещение будет немедленно отправлено в панель администратора. Продолжить?',
+  redAlertCancel: 'Отмена',
+  redAlertConfirmSend: 'Отправить',
+  redAlertSuccessTitle: 'Оповещение отправлено',
+  redAlertSuccessBody:
+      'Критическое оповещение отправлено в панель администратора.',
+  redAlertSuccessDone: 'Готово',
+  redAlertErrorNoAuth:
+      'Войдите в аккаунт исполнителя, чтобы отправить оповещение.',
+  redAlertErrorNotReady: 'Сервер недоступен. Повторите позже.',
+  redAlertErrorProfileMissing:
+      'Профиль исполнителя не найден. Обратитесь к администратору.',
+  redAlertErrorInvalidMachine: 'Некорректные данные оборудования.',
+  redAlertErrorShortReason: 'Укажите краткую причину.',
+  redAlertErrorRlsDenied:
+      'Нет прав на отправку. Проверьте учётную запись и политики доступа.',
+  redAlertErrorSchemaMismatch:
+      'Таблица оповещений недоступна. Нужно обновить схему базы.',
+  redAlertErrorSendFailed: 'Не удалось отправить оповещение.',
+  redAlertChooseMachineFirst: 'Сначала выберите оборудование.',
+  redAlertCatalogTaskRoute: 'Из маршрута задачи',
+  redAlertCatalogEquipmentDirectory: 'Справочник оборудования',
+  redAlertTaskDetailCta: 'Красная тревога',
+  qrScanActionTooltip: 'Сканировать QR',
+  qrScanScreenTitle: 'Сканер QR',
+  qrScanInstruction: 'Наведите камеру на QR-код',
+  qrScanRecognized: 'QR распознан',
+  qrScanScannedValueLabel: 'Считанное значение',
+  qrScanPhase2Message:
+      'Привязка QR к задаче и оборудованию будет подключена на следующем этапе.',
+  qrScanAgain: 'Сканировать снова',
+  qrScanClose: 'Закрыть',
+  qrScanBackTooltip: 'Назад',
+  qrScanPermissionTitle: 'Нужен доступ к камере',
+  qrScanPermissionBody:
+      'Разрешите использование камеры в настройках устройства, чтобы сканировать QR-коды.',
+  qrScanOpenSettings: 'Открыть настройки',
+  qrScanRetry: 'Повторить',
+  qrScanStartFailed: 'Не удалось запустить камеру',
+  qrScanUnavailable: 'Сканирование на этом устройстве недоступно',
+  qrScanGenericErrorHint:
+      'Проверьте разрешения и повторите попытку. На симуляторе камера может отсутствовать.',
 );
 
 const AppStrings _tr = AppStrings(
@@ -1279,6 +1631,138 @@ const AppStrings _tr = AppStrings(
   taskRequestDescriptionMultipleLocationsNote:
       'Not: farklı sahalardan veya bölgelerden birimler seçildi; alan alanları birleştirildi.',
   labelTaskDuration: 'Gerçekleşme süresi',
+  taskChatOpenAction: 'Görev sohbeti',
+  taskChatSectionTitle: 'Yönetici ile iletişim',
+  taskChatProfileEntryTitle: 'Görev sohbetleri',
+  taskChatProfileEntrySubtitle:
+      'Aktif ve arşiv görevleri, mesaj geçmişi',
+  taskChatContextSubtitle: 'Bu görev hakkında',
+  taskChatContextStatus: 'Görev durumu',
+  taskChatMessageHint: 'Mesaj…',
+  taskChatSend: 'Gönder',
+  taskChatAttachImage: 'Fotoğraf',
+  taskChatAttachVideo: 'Video',
+  taskChatAttachFile: 'Dosya',
+  taskChatAttachMenuTitle: 'Ek',
+  taskChatSenderAdmin: 'Yönetici',
+  taskChatSenderWorker: 'Saha çalışanı',
+  taskChatYou: 'Siz',
+  taskChatPickTaskTitle: 'Görev seçin',
+  taskChatLoading: 'Sohbet yükleniyor…',
+  taskChatEmpty: 'Henüz mesaj yok',
+  taskChatNotAvailableOffline: 'Sohbet yalnızca veritabanından atanan görevler için kullanılabilir',
+  taskChatAttachmentOpen: 'Aç',
+  taskChatAttachmentImage: 'Görüntü',
+  taskChatAttachmentVideo: 'Video',
+  taskChatAttachmentPdf: 'PDF',
+  taskChatAttachmentFile: 'Dosya',
+  taskChatErrorMessageSendFailed: 'Mesaj gönderilemedi',
+  taskChatErrorUploadFailed: 'Dosya yüklenemedi',
+  taskChatErrorStorageUnavailable: 'Dosya depolaması kullanılamıyor',
+  taskChatErrorUnavailable: 'Sohbet şu anda kullanılamıyor',
+  taskChatErrorNoAuthSession: 'Oturum yok. Lütfen giriş yapın.',
+  taskChatErrorNoTaskSelected: 'Görev seçilmedi',
+  taskChatErrorNoActiveTasks: 'Sohbet için aktif görev yok',
+  taskChatErrorUnsupportedFile: 'Desteklenmeyen dosya türü',
+  taskChatErrorFileTooLarge: 'Dosya çok büyük',
+  taskChatPickerSectionActive: 'Güncel görevler',
+  taskChatPickerSectionArchive: 'Arşiv ve geçmiş',
+  taskChatBadgeArchived: 'Arşiv',
+  taskChatBadgeHasHistory: 'Yazışma var',
+  taskChatNoTasksForChat: 'Sohbet için görev yok',
+  taskChatUnableToLoad: 'Sohbet yüklenemedi',
+  taskChatThreadNotFound: 'Sohbet kullanılamıyor',
+  taskChatReadOnlyClosedTask:
+      'Görev tamamlandı — yalnızca geçmişi okuyabilirsiniz.',
+  taskChatLoadingConversationHint: 'Yazışma yükleniyor…',
+  taskChatEmptySubtitle: 'Bu görev hakkında yazışmaya başlayın',
+  taskChatPhotoFromGallery: 'Galeriden fotoğraf',
+  taskChatTakePhoto: 'Fotoğraf çek',
+  taskChatAttachPdfDocument: 'PDF belgesi',
+  taskChatChooseAttachment: 'Ek seçin',
+  taskChatErrorProfileRequired:
+      'Sohbet için işçi profili gerekir. Yöneticinize başvurun.',
+  taskChatErrorTimeout:
+      'Zaman aşımı. Ağı kontrol edip tekrar deneyin.',
+  taskChatErrorConnection:
+      'Bağlantı sorunu. Daha sonra tekrar deneyin.',
+  taskChatPermissionDenied:
+      'İzin yok. Ayarlardan erişime izin verin.',
+  taskChatErrorAnonymousSession:
+      'Sohbete yazmak için anonim değil, işçi hesabıyla giriş yapın.',
+  taskChatErrorCreateThreadFailed:
+      'Görev sohbeti oluşturulamadı. Atamayı, ağı ve erişim kurallarını kontrol edin.',
+  taskChatErrorDatabaseInsertFailed:
+      'Mesaj kaydedilemedi: sunucu veya şema hatası. İşçi profilini ve RLS kurallarını kontrol edin.',
+  taskChatErrorRlsInsertDenied:
+      'Güvenlik politikası (RLS) mesaj eklemeyi reddetti: bu görev veya sohbet için izin yok.',
+  taskChatErrorServerSchemaMismatch:
+      'Mesaj kaydedilemedi: veritabanında task_chat_messages tablosunda body sütunu yok (PGRST204). Supabase → SQL Editor’de sırayla çalıştırın: 20260422150000_task_chat_messages_ensure_body_column.sql ve gerekirse 20260422103000_task_chat_ensure_trigger_and_access.sql. Web paneli aynı tabloda body alanını okuyup yazmalı; fotoğraf/PDF için task_chat_attachments + depolama kullanılır.',
+  redAlertRequestEmergencyTitle: 'Kritik olay',
+  redAlertRequestEmergencyBody:
+      'Yönetici paneline acil bildirim: makine durdu, tehlikeli arıza, acil kontrol veya bakım.',
+  redAlertRequestOpenButton: 'Kırmızı alarm',
+  redAlertScreenTitle: 'Kırmızı alarm',
+  redAlertLoadingCatalog: 'Ekipman listesi yükleniyor…',
+  redAlertCatalogEmpty:
+      'Seçilebilir ekipman yok. Atamaları veya dizini kontrol edin.',
+  redAlertIntroTitle: 'Yalnızca acil durumlar için',
+  redAlertIntroBody:
+      'Makine durması, tehlikeli arıza, acil denetim veya derhal bakım gerektiğinde kullanın.',
+  redAlertSelectMachine: 'Ekipman seçin',
+  redAlertMachineHint: 'Seçmek için dokunun',
+  redAlertMachineSearchHint: 'Ad veya göreve göre ara',
+  redAlertNoMachinesFound: 'Sonuç yok',
+  redAlertPrefillHint:
+      'Ekipman mevcut göreve göre seçildi; gerekirse değiştirebilirsiniz.',
+  redAlertShortReasonLabel: 'Kısa neden',
+  redAlertShortReasonHint: 'Örn. pompa durdu, basınçlı kaçak',
+  redAlertDescriptionLabel: 'Açıklama',
+  redAlertDescriptionHint: 'Ne oldu, riskler, sahadaki gözlem',
+  redAlertSendButton: 'Kritik alarm gönder',
+  redAlertConfirmTitle: 'Gönderimi onayla',
+  redAlertConfirmBody:
+      'Kritik alarm yönetici paneline hemen iletilecek. Devam edilsin mi?',
+  redAlertCancel: 'İptal',
+  redAlertConfirmSend: 'Gönder',
+  redAlertSuccessTitle: 'Alarm gönderildi',
+  redAlertSuccessBody: 'Kritik alarm yönetici paneline iletildi.',
+  redAlertSuccessDone: 'Tamam',
+  redAlertErrorNoAuth:
+      'Alarm göndermek için işçi hesabıyla giriş yapın.',
+  redAlertErrorNotReady: 'Sunucu hazır değil. Sonra deneyin.',
+  redAlertErrorProfileMissing:
+      'İşçi profili bulunamadı. Yöneticiye başvurun.',
+  redAlertErrorInvalidMachine: 'Ekipman verisi geçersiz.',
+  redAlertErrorShortReason: 'Kısa nedeni yazın.',
+  redAlertErrorRlsDenied:
+      'Gönderim izni yok. Hesap ve erişim kurallarını kontrol edin.',
+  redAlertErrorSchemaMismatch:
+      'Uyarı tablosu yok veya şema uyumsuz. Veritabanını güncelleyin.',
+  redAlertErrorSendFailed: 'Alarm gönderilemedi.',
+  redAlertChooseMachineFirst: 'Önce ekipman seçin.',
+  redAlertCatalogTaskRoute: 'Görev güzergâhından',
+  redAlertCatalogEquipmentDirectory: 'Ekipman dizininden',
+  redAlertTaskDetailCta: 'Kırmızı alarm',
+  qrScanActionTooltip: 'QR tara',
+  qrScanScreenTitle: 'QR tarayıcı',
+  qrScanInstruction: 'Kamerayı QR koda doğrultun',
+  qrScanRecognized: 'QR tanındı',
+  qrScanScannedValueLabel: 'Okunan değer',
+  qrScanPhase2Message:
+      'QR ile görev ve ekipman eşlemesi bir sonraki aşamada bağlanacak.',
+  qrScanAgain: 'Yeniden tara',
+  qrScanClose: 'Kapat',
+  qrScanBackTooltip: 'Geri',
+  qrScanPermissionTitle: 'Kamera izni gerekli',
+  qrScanPermissionBody:
+      'QR kodları taramak için ayarlardan kamera erişimine izin verin.',
+  qrScanOpenSettings: 'Ayarları aç',
+  qrScanRetry: 'Yeniden dene',
+  qrScanStartFailed: 'Kamera başlatılamadı',
+  qrScanUnavailable: 'Bu cihazda tarama kullanılamıyor',
+  qrScanGenericErrorHint:
+      'İzinleri kontrol edip tekrar deneyin. Simülatörde kamera olmayabilir.',
 );
 
 const AppStrings _en = AppStrings(
@@ -1586,4 +2070,135 @@ const AppStrings _en = AppStrings(
   taskRequestDescriptionMultipleLocationsNote:
       'Note: items span multiple sites or areas; site/area fields list a combined value.',
   labelTaskDuration: 'Time to complete',
+  taskChatOpenAction: 'Task chat',
+  taskChatSectionTitle: 'Contact administrator',
+  taskChatProfileEntryTitle: 'Task chats',
+  taskChatProfileEntrySubtitle:
+      'Active and archived tasks, message history',
+  taskChatContextSubtitle: 'Discussion for this task',
+  taskChatContextStatus: 'Task status',
+  taskChatMessageHint: 'Message…',
+  taskChatSend: 'Send',
+  taskChatAttachImage: 'Photo',
+  taskChatAttachVideo: 'Video',
+  taskChatAttachFile: 'File',
+  taskChatAttachMenuTitle: 'Attachment',
+  taskChatSenderAdmin: 'Administrator',
+  taskChatSenderWorker: 'Field worker',
+  taskChatYou: 'You',
+  taskChatPickTaskTitle: 'Choose a task',
+  taskChatLoading: 'Loading chat…',
+  taskChatEmpty: 'No messages yet',
+  taskChatNotAvailableOffline: 'Chat is only available for database-assigned tasks',
+  taskChatAttachmentOpen: 'Open',
+  taskChatAttachmentImage: 'Image',
+  taskChatAttachmentVideo: 'Video',
+  taskChatAttachmentPdf: 'PDF',
+  taskChatAttachmentFile: 'File',
+  taskChatErrorMessageSendFailed: 'Could not send message',
+  taskChatErrorUploadFailed: 'Could not upload file',
+  taskChatErrorStorageUnavailable: 'File storage is unavailable',
+  taskChatErrorUnavailable: 'Chat is unavailable',
+  taskChatErrorNoAuthSession: 'No session. Please sign in.',
+  taskChatErrorNoTaskSelected: 'No task selected',
+  taskChatErrorNoActiveTasks: 'No active tasks for chat',
+  taskChatErrorUnsupportedFile: 'Unsupported file type',
+  taskChatErrorFileTooLarge: 'File is too large',
+  taskChatPickerSectionActive: 'Active tasks',
+  taskChatPickerSectionArchive: 'Archive & history',
+  taskChatBadgeArchived: 'Archived',
+  taskChatBadgeHasHistory: 'Chat history',
+  taskChatNoTasksForChat: 'No tasks for chat',
+  taskChatUnableToLoad: 'Could not load chat',
+  taskChatThreadNotFound: 'Conversation unavailable',
+  taskChatReadOnlyClosedTask:
+      'Task is completed — you can only read this chat.',
+  taskChatLoadingConversationHint: 'Loading conversation…',
+  taskChatEmptySubtitle: 'Start the conversation about this task',
+  taskChatPhotoFromGallery: 'Photo from gallery',
+  taskChatTakePhoto: 'Take photo',
+  taskChatAttachPdfDocument: 'PDF document',
+  taskChatChooseAttachment: 'Choose attachment',
+  taskChatErrorProfileRequired:
+      'Worker profile is required for chat. Contact your administrator.',
+  taskChatErrorTimeout:
+      'Request timed out. Check your network and try again.',
+  taskChatErrorConnection:
+      'Connection problem. Try again later.',
+  taskChatPermissionDenied:
+      'Permission denied. Allow access in settings.',
+  taskChatErrorAnonymousSession:
+      'Sign in with a worker account (not anonymous) to use chat.',
+  taskChatErrorCreateThreadFailed:
+      'Could not create the task conversation. Check assignment, network, and access policies.',
+  taskChatErrorDatabaseInsertFailed:
+      'Message was not saved: server or schema error. Check your worker profile and RLS policies.',
+  taskChatErrorRlsInsertDenied:
+      'Security policy (RLS) blocked sending: no insert permission for this task or chat thread.',
+  taskChatErrorServerSchemaMismatch:
+      'Message was not saved: task_chat_messages is missing the body column (PGRST204) or the schema cache is stale. In Supabase → SQL Editor run: 20260422150000_task_chat_messages_ensure_body_column.sql, then if needed 20260422103000_task_chat_ensure_trigger_and_access.sql. The admin web app must read/write the same body column; files use task_chat_attachments + storage.',
+  redAlertRequestEmergencyTitle: 'Critical incident',
+  redAlertRequestEmergencyBody:
+      'Urgent notice to the admin panel: machine down, dangerous fault, urgent inspection, or immediate maintenance.',
+  redAlertRequestOpenButton: 'Red alert',
+  redAlertScreenTitle: 'Red alert',
+  redAlertLoadingCatalog: 'Loading equipment…',
+  redAlertCatalogEmpty:
+      'No equipment available. Check assignments or the equipment directory.',
+  redAlertIntroTitle: 'For emergencies only',
+  redAlertIntroBody:
+      'Use for critical cases: machine stopped, dangerous malfunction, urgent inspection, or immediate maintenance.',
+  redAlertSelectMachine: 'Select equipment',
+  redAlertMachineHint: 'Tap to choose',
+  redAlertMachineSearchHint: 'Search by name or task',
+  redAlertNoMachinesFound: 'No matches',
+  redAlertPrefillHint:
+      'Equipment was prefilled from the current task; change it if needed.',
+  redAlertShortReasonLabel: 'Short reason',
+  redAlertShortReasonHint: 'e.g. pump tripped, pressurized leak',
+  redAlertDescriptionLabel: 'Description',
+  redAlertDescriptionHint: 'What happened, risks, what you see on site',
+  redAlertSendButton: 'Send critical alert',
+  redAlertConfirmTitle: 'Confirm send',
+  redAlertConfirmBody:
+      'A critical alert will be sent to the admin panel immediately. Continue?',
+  redAlertCancel: 'Cancel',
+  redAlertConfirmSend: 'Send',
+  redAlertSuccessTitle: 'Alert sent',
+  redAlertSuccessBody: 'Critical alert sent to the admin panel.',
+  redAlertSuccessDone: 'Done',
+  redAlertErrorNoAuth: 'Sign in with a worker account to send an alert.',
+  redAlertErrorNotReady: 'Server not ready. Try again later.',
+  redAlertErrorProfileMissing:
+      'Worker profile not found. Contact an administrator.',
+  redAlertErrorInvalidMachine: 'Invalid equipment data.',
+  redAlertErrorShortReason: 'Enter a short reason.',
+  redAlertErrorRlsDenied:
+      'No permission to send. Check your account and access policies.',
+  redAlertErrorSchemaMismatch:
+      'Alerts table missing or schema mismatch. Update the database.',
+  redAlertErrorSendFailed: 'Could not send the alert.',
+  redAlertChooseMachineFirst: 'Choose equipment first.',
+  redAlertCatalogTaskRoute: 'From task route',
+  redAlertCatalogEquipmentDirectory: 'Equipment directory',
+  redAlertTaskDetailCta: 'Red alert',
+  qrScanActionTooltip: 'Scan QR',
+  qrScanScreenTitle: 'QR scanner',
+  qrScanInstruction: 'Point the camera at the QR code',
+  qrScanRecognized: 'QR recognized',
+  qrScanScannedValueLabel: 'Scanned value',
+  qrScanPhase2Message:
+      'Machine and task linking from QR will be connected in the next stage.',
+  qrScanAgain: 'Scan again',
+  qrScanClose: 'Close',
+  qrScanBackTooltip: 'Back',
+  qrScanPermissionTitle: 'Camera permission needed',
+  qrScanPermissionBody:
+      'Allow camera access in your device settings to scan QR codes.',
+  qrScanOpenSettings: 'Open settings',
+  qrScanRetry: 'Try again',
+  qrScanStartFailed: 'Failed to start camera',
+  qrScanUnavailable: 'Scanning is not available on this device',
+  qrScanGenericErrorHint:
+      'Check permissions and try again. Simulators may have no camera.',
 );

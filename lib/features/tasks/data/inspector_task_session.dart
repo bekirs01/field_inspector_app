@@ -106,6 +106,27 @@ class InspectorTaskSession {
     );
   }
 
+  /// When only [taskRow] exists in DB (e.g. chat history after assignment row shape edge cases).
+  static Map<String, dynamic> syntheticAssignmentRowFromTask(
+    Map<String, dynamic> taskRow,
+  ) {
+    String str(dynamic v) => v?.toString() ?? '';
+    final tid = str(taskRow['id']);
+    final taskStatus = str(taskRow['status']);
+    final exec = taskStatus.isEmpty ? 'assigned' : taskStatus;
+    return <String, dynamic>{
+      'id': '',
+      'task_id': tid,
+      'execution_status': exec,
+      'is_active': false,
+      'started_at': null,
+      'duration_minutes': null,
+      'completed_at': null,
+      'assigned_at': null,
+      'worker_user_id': '',
+    };
+  }
+
   factory InspectorTaskSession.fromRemoteTask({
     required Map<String, dynamic> assignmentRow,
     required Map<String, dynamic> taskRow,
@@ -192,7 +213,7 @@ class InspectorTaskSession {
       assignmentDurationMinutes: durationM,
       assignmentCompletedAtRaw: completedAt,
       title: str(taskRow['title']).isEmpty ? s.tasksUntitledTask : str(taskRow['title']),
-      siteAreaLine: siteArea.isEmpty ? s.tasksScheduleNotSpecified : siteArea,
+      siteAreaLine: siteArea,
       shiftOrDueLine: shiftOrDue,
       items: items,
       remoteStatusRaw: str(taskRow['status']).isEmpty ? null : str(taskRow['status']),

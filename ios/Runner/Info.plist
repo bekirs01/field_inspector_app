@@ -70,5 +70,7 @@
 	<string>Photos are attached to inspection reports.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone is used for defect voice notes.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera is used to scan QR codes on equipment and tasks.</string>
 </dict>
 </plist>

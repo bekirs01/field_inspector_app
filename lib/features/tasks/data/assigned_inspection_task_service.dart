@@ -149,6 +149,123 @@ class AssignedInspectionTaskService {
     }
   }
 
+  /// All assignment rows for the worker (active and inactive), one bundle per task_id.
+  static Future<TaskListLoadResult> loadAllWorkerAssignmentBundles() async {
+    final workerId = WorkerIdentity.resolveWorkerUserId();
+    if (workerId == null || workerId.isEmpty) {
+      debugPrint('[AssignedTasks] loadAll: no worker id');
+      return const TaskListLoadResult(
+        bundles: [],
+        error: TaskListLoadError.noWorkerIdentity,
+      );
+    }
+    if (!_clientReady()) {
+      return const TaskListLoadResult(
+        bundles: [],
+        error: TaskListLoadError.supabaseNotReady,
+      );
+    }
+
+    try {
+      final assignRes = await _client
+          .from('inspection_task_assignments')
+          .select()
+          .eq('worker_user_id', workerId);
+
+      final assignList = assignRes as List<dynamic>;
+      if (assignList.isEmpty) {
+        return const TaskListLoadResult(bundles: []);
+      }
+
+      final byTask = <String, Map<String, dynamic>>{};
+      for (final raw in assignList) {
+        if (raw is! Map<String, dynamic>) continue;
+        final tid = raw['task_id']?.toString() ?? '';
+        if (tid.isEmpty) continue;
+        final existing = byTask[tid];
+        if (existing == null) {
+          byTask[tid] = raw;
+          continue;
+        }
+        final exActive = existing['is_active'] == true;
+        final rawActive = raw['is_active'] == true;
+        if (rawActive && !exActive) {
+          byTask[tid] = raw;
+          continue;
+        }
+        if (!rawActive && exActive) {
+          continue;
+        }
+        final tNew = DateTime.tryParse('${raw['assigned_at'] ?? ''}')?.toUtc();
+        final tOld =
+            DateTime.tryParse('${existing['assigned_at'] ?? ''}')?.toUtc();
+        if (tNew != null && (tOld == null || tNew.isAfter(tOld))) {
+          byTask[tid] = raw;
+        }
+      }
+
+      final taskIds = byTask.keys.toList();
+      if (taskIds.isEmpty) {
+        return const TaskListLoadResult(bundles: []);
+      }
+
+      final tasksRes =
+          await _client.from('inspection_tasks').select().inFilter('id', taskIds);
+
+      final tasksList = tasksRes as List<dynamic>;
+      final taskById = <String, Map<String, dynamic>>{};
+      for (final t in tasksList) {
+        if (t is Map<String, dynamic>) {
+          final id = t['id']?.toString();
+          if (id != null && id.isNotEmpty) taskById[id] = t;
+        }
+      }
+
+      final itemsRes = await _client
+          .from('inspection_task_items')
+          .select()
+          .inFilter('task_id', taskIds)
+          .order('sort_order', ascending: true);
+
+      final itemsList = itemsRes as List<dynamic>;
+      final itemsByTask = <String, List<Map<String, dynamic>>>{};
+      for (final raw in itemsList) {
+        if (raw is Map<String, dynamic>) {
+          final tid = raw['task_id']?.toString();
+          if (tid == null || tid.isEmpty) continue;
+          itemsByTask.putIfAbsent(tid, () => []).add(raw);
+        }
+      }
+
+      final bundles = <AssignedInspectionTaskBundle>[];
+      for (final tid in taskIds) {
+        final taskRow = taskById[tid];
+        if (taskRow == null) continue;
+        bundles.add(
+          AssignedInspectionTaskBundle(
+            assignmentRow: byTask[tid]!,
+            taskRow: taskRow,
+            itemRows: itemsByTask[tid] ?? const [],
+          ),
+        );
+      }
+
+      bundles.sort((a, b) {
+        final ta = '${a.taskRow['title']}'.toLowerCase();
+        final tb = '${b.taskRow['title']}'.toLowerCase();
+        return ta.compareTo(tb);
+      });
+
+      return TaskListLoadResult(bundles: bundles);
+    } catch (e, st) {
+      debugPrint('[AssignedTasks] loadAll fetch failed $e\n$st');
+      return TaskListLoadResult(
+        bundles: const [],
+        error: TaskListLoadError.fetchFailed,
+      );
+    }
+  }
+
   /// First time (or any) route open: assignment tracking + task status.
   static Future<void> markAssignmentStarted({
     required String? assignmentId,

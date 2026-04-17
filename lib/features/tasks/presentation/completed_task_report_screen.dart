@@ -6,6 +6,7 @@ import '../../inspection/presentation/inspection_resubmit_navigation.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
 import 'widgets/task_flow_visual.dart';
+import 'task_chat_navigation.dart';
 import 'worker_main_shell.dart';
 
 class CompletedTaskReportScreen extends StatelessWidget {
@@ -94,6 +95,17 @@ class CompletedTaskReportScreen extends StatelessWidget {
                 appBar: buildTaskFlowAppBar(
                   context: context,
                   title: Text(s.completedReportAppTitle),
+                  actions: [
+                    if (taskChatSupportedForSession(session))
+                      IconButton(
+                        tooltip: s.taskChatOpenAction,
+                        onPressed: () => openTaskChatForSession(
+                          context: context,
+                          session: session,
+                        ),
+                        icon: const Icon(Icons.chat_bubble_outline_rounded),
+                      ),
+                  ],
                 ),
                 body: Center(
                   child: Padding(
@@ -116,6 +128,17 @@ class CompletedTaskReportScreen extends StatelessWidget {
               appBar: buildTaskFlowAppBar(
                 context: context,
                 title: Text(s.completedReportAppTitle),
+                actions: [
+                  if (taskChatSupportedForSession(session))
+                    IconButton(
+                      tooltip: s.taskChatOpenAction,
+                      onPressed: () => openTaskChatForSession(
+                        context: context,
+                        session: session,
+                      ),
+                      icon: const Icon(Icons.chat_bubble_outline_rounded),
+                    ),
+                ],
               ),
               body: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

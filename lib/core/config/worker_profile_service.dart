@@ -55,7 +55,7 @@ class WorkerProfileService {
     try {
       final res = await _client
           .from('profiles')
-          .select('id, full_name, username, employee_code, role')
+          .select('id, full_name, username, role')
           .eq('id', userId)
           .maybeSingle();
       if (res == null) return null;
@@ -65,7 +65,7 @@ class WorkerProfileService {
         id: s(m['id']).isEmpty ? userId : s(m['id']),
         fullName: s(m['full_name']),
         username: s(m['username']),
-        employeeCode: s(m['employee_code']),
+        employeeCode: '',
         role: s(m['role']),
       );
     } catch (e, st) {

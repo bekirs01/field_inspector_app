@@ -11,6 +11,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../inspection/data/remote_send_availability.dart';
+import '../../qr/presentation/qr_scan_screen.dart';
 import '../data/assigned_inspection_task_service.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
@@ -325,34 +326,51 @@ class _TaskListScreenState extends State<TaskListScreen> {
               final colorScheme = theme.colorScheme;
               return Scaffold(
                 backgroundColor: theme.scaffoldBackgroundColor,
-                appBar: widget.embedInMainShell
-                    ? null
-                    : buildTaskFlowAppBar(
-                        context: context,
-                        title: Text(
-                          s.tasksAppTitle,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        actions: [
-                          IconButton(
-                            icon: const Icon(Icons.refresh_rounded),
-                            tooltip: s.tasksRetry,
-                            onPressed: () {
-                              unawaited(_reload());
+                appBar: buildTaskFlowAppBar(
+                  context: context,
+                  title: Text(
+                    s.tasksAppTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.qr_code_scanner_rounded),
+                      tooltip: s.qrScanActionTooltip,
+                      onPressed: () {
+                        Navigator.of(context).push<void>(
+                          PageRouteBuilder<void>(
+                            pageBuilder: (context, animation, secondary) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: const QrScanScreen(),
+                              );
                             },
+                            transitionDuration:
+                                const Duration(milliseconds: 280),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.logout_rounded),
-                            tooltip: s.tasksAppBarSignOut,
-                            onPressed: () async {
-                              await Supabase.instance.client.auth.signOut();
-                            },
-                          ),
-                        ],
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh_rounded),
+                      tooltip: s.tasksRetry,
+                      onPressed: () {
+                        unawaited(_reload());
+                      },
+                    ),
+                    if (!widget.embedInMainShell)
+                      IconButton(
+                        icon: const Icon(Icons.logout_rounded),
+                        tooltip: s.tasksAppBarSignOut,
+                        onPressed: () async {
+                          await Supabase.instance.client.auth.signOut();
+                        },
                       ),
+                  ],
+                ),
                 body: _maybeSnow(
                   embed: widget.embedInMainShell,
                   child: widget.embedInMainShell
@@ -765,15 +783,18 @@ class _TaskListCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  session.siteAreaLine,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.35,
+                if (session.siteAreaLine.trim().isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    session.siteAreaLine,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
+                  const SizedBox(height: 14),
+                ] else
+                  const SizedBox(height: 10),
                 Row(
                   children: [
                     Icon(

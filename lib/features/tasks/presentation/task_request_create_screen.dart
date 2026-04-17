@@ -7,6 +7,7 @@ import '../../../core/localization/language_controller.dart';
 import '../data/equipment_nodes_repository.dart';
 import '../data/inspection_task_request_service.dart';
 import 'widgets/equipment_nodes_picker.dart';
+import 'red_alert_screen.dart';
 import 'widgets/task_flow_visual.dart';
 
 class TaskRequestCreateScreen extends StatefulWidget {
@@ -324,6 +325,76 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
     );
   }
 
+  Widget _redAlertEmergencySection(
+    AppStrings s,
+    ThemeData theme,
+    ColorScheme cs,
+  ) {
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: cs.error.withValues(alpha: 0.55)),
+      ),
+      color: cs.errorContainer.withValues(alpha: 0.12),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.emergency_rounded, color: cs.error, size: 26),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s.redAlertRequestEmergencyTitle,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: cs.onSurface,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        s.redAlertRequestEmergencyBody,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: cs.error,
+                foregroundColor: cs.onError,
+              ),
+              onPressed: _submitting
+                  ? null
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const RedAlertScreen(),
+                        ),
+                      );
+                    },
+              icon: const Icon(Icons.warning_amber_rounded),
+              label: Text(s.redAlertRequestOpenButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _equipmentSection(AppStrings s, ThemeData theme, ColorScheme cs) {
     if (_loadingForest) {
       return _sectionCard(
@@ -416,6 +487,8 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
         final formList = ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
+              _redAlertEmergencySection(s, theme, colorScheme),
+              const SizedBox(height: 16),
               _equipmentSection(s, theme, colorScheme),
               const SizedBox(height: 16),
               _sectionCard(

@@ -7,6 +7,8 @@ import '../../inspection/presentation/inspection_route_screen.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
 import 'completed_task_report_screen.dart';
+import 'red_alert_screen.dart';
+import 'task_chat_navigation.dart';
 import 'widgets/task_flow_visual.dart';
 
 class TaskDetailScreen extends StatelessWidget {
@@ -94,6 +96,41 @@ class TaskDetailScreen extends StatelessWidget {
                               statusLabel: statusLabel,
                               statusColor: statusColorResolved,
                             ),
+                            if (taskChatSupportedForSession(session)) ...[
+                              const SizedBox(height: 14),
+                              OutlinedButton.icon(
+                                onPressed: () => openTaskChatForSession(
+                                  context: context,
+                                  session: session,
+                                ),
+                                icon: const Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                ),
+                                label: Text(s.taskChatOpenAction),
+                              ),
+                            ],
+                            if (session.isRemote &&
+                                (session.remoteTaskId?.trim().isNotEmpty ??
+                                    false)) ...[
+                              const SizedBox(height: 14),
+                              FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: colorScheme.error,
+                                  foregroundColor: colorScheme.onError,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (context) => RedAlertScreen(
+                                        prefillSession: session,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.emergency_rounded),
+                                label: Text(s.redAlertTaskDetailCta),
+                              ),
+                            ],
                             const SizedBox(height: 20),
                             Text(
                               s.sectionTaskInstructions.toUpperCase(),

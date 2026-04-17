@@ -30,23 +30,34 @@ class InspectionTaskRequestService {
 
   static SupabaseClient get _client => Supabase.instance.client;
 
-  /// Narrow "schema mismatch" to real missing/unknown column problems — not generic PostgREST codes.
+  /// True only for missing/unknown **table columns** — not check/FK/null/RLS/duplicate errors.
+  ///
+  /// Avoids false positives from words like "unknown" or "not exist" in unrelated messages.
   static bool _isRealSchemaMismatch(PostgrestException e) {
     final code = e.code?.toString() ?? '';
     final msg = '${e.message} ${e.details} ${e.hint}'.toLowerCase();
 
+    if (msg.contains('check constraint') ||
+        msg.contains('foreign key constraint') ||
+        msg.contains('violates not-null') ||
+        msg.contains('null value in column') ||
+        msg.contains('duplicate key') ||
+        msg.contains('unique constraint')) {
+      return false;
+    }
+
     if (code == '42703') return true;
 
-    if (msg.contains('undefined column')) return true;
-
-    if (msg.contains('column') &&
-        (msg.contains('does not exist') ||
-            msg.contains('not exist in') ||
-            msg.contains('unknown'))) {
+    if (msg.contains('undefined column') || msg.contains('undefined_column')) {
       return true;
     }
 
-    if (msg.contains('could not find') && msg.contains('column')) return true;
+    if (msg.contains('does not exist') && msg.contains('column')) return true;
+
+    if (msg.contains('schema cache') &&
+        (msg.contains('could not find') || msg.contains("doesn't exist"))) {
+      return true;
+    }
 
     return false;
   }
@@ -138,8 +149,10 @@ class InspectionTaskRequestService {
       'request_type': rt,
       'priority': p,
       'status': 'pending',
-      'desired_due_at': desiredDueAt?.toUtc().toIso8601String(),
     };
+    if (desiredDueAt != null) {
+      row['desired_due_at'] = desiredDueAt.toUtc().toIso8601String();
+    }
 
     try {
       await _client.from('inspection_task_requests').insert(row);
