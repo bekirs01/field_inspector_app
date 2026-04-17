@@ -8,6 +8,7 @@ import '../../../core/localization/language_menu_button.dart';
 import '../../tasks/data/assigned_inspection_task_service.dart';
 import '../../tasks/data/demo_task_completion_store.dart';
 import '../../tasks/data/inspector_task_session.dart';
+import '../../tasks/presentation/widgets/task_flow_visual.dart';
 import 'inspection_object_screen.dart';
 import 'inspection_task_summary_screen.dart';
 
@@ -180,90 +181,87 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
             children: [
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(18, 6, 18, 12),
                   children: [
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              s.labelTask,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
                               widget.session.title,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: colorScheme.onSurface,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              s.labelObject,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
                               widget.session.siteAreaLine,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              s.labelShift,
-                              style: theme.textTheme.labelMedium?.copyWith(
+                              style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.session.shiftOrDueLine,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule_rounded,
+                                  size: 16,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    widget.session.shiftOrDueLine,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     Text(
-                      s.labelProgress,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurface,
+                      s.labelProgress.toUpperCase(),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.9,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         value: progressValue,
-                        minHeight: 8,
+                        minHeight: 10,
                         backgroundColor: colorScheme.surfaceContainerHighest,
+                        color: colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       s.progressObjectsChecked(_finishedCount, total),
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Text(
-                      s.sectionInspectionObjects,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurface,
+                      s.sectionInspectionObjects.toUpperCase(),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.9,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     ...items.asMap().entries.map((entry) {
                       final index = entry.key;
                       final item = entry.value;
@@ -277,43 +275,57 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                           child: InkWell(
                             onTap: () => _openObjectAt(index),
                             child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
+                              padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          '$order. ${item.equipmentName}',
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: colorScheme.primary
+                                          .withValues(alpha: 0.14),
+                                    ),
+                                    child: Text(
+                                      '$order',
+                                      style: theme.textTheme.labelLarge
+                                          ?.copyWith(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.equipmentName,
                                           style: theme.textTheme.titleSmall
                                               ?.copyWith(
-                                                color: colorScheme.onSurface,
-                                              ),
+                                            color: colorScheme.onSurface,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        badgeText,
-                                        style: theme.textTheme.labelMedium
-                                            ?.copyWith(
-                                              color: _badgeColor(
-                                                colorScheme,
-                                                index,
-                                              ),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    item.equipmentLocation,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          item.equipmentLocation,
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color:
+                                                colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
                                     ),
+                                  ),
+                                  TaskFlowStatusPill(
+                                    label: badgeText,
+                                    accent: _badgeColor(colorScheme, index),
                                   ),
                                 ],
                               ),
@@ -326,7 +338,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
                 child: FilledButton(
                   onPressed: allDone ? null : _openCurrentObject,
                   child: Text(s.openCurrentObjectButton),

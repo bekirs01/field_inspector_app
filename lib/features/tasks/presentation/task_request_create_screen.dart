@@ -4,9 +4,15 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../data/inspection_task_request_service.dart';
+import 'widgets/task_flow_visual.dart';
 
 class TaskRequestCreateScreen extends StatefulWidget {
-  const TaskRequestCreateScreen({super.key});
+  const TaskRequestCreateScreen({
+    super.key,
+    this.embedInMainShell = false,
+  });
+
+  final bool embedInMainShell;
 
   @override
   State<TaskRequestCreateScreen> createState() =>
@@ -48,6 +54,14 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
     }
   }
 
+  void _clearForm() {
+    _title.clear();
+    _site.clear();
+    _area.clear();
+    _description.clear();
+    setState(() => _priorityIndex = 0);
+  }
+
   Future<void> _submit(BuildContext context) async {
     final s = context.strings;
     final messenger = ScaffoldMessenger.of(context);
@@ -70,7 +84,11 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
       messenger.showSnackBar(
         SnackBar(content: Text(s.taskRequestSuccess)),
       );
-      Navigator.of(context).pop();
+      if (widget.embedInMainShell) {
+        _clearForm();
+      } else {
+        Navigator.of(context).pop();
+      }
     } on InspectionTaskRequestException catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
@@ -90,99 +108,200 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final s = context.strings;
+    final lang = context.languageController;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(s.taskRequestScreenTitle),
-        actions: const [
-          LanguageMenuButton(),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        children: [
-          TextField(
-            controller: _title,
-            decoration: InputDecoration(
-              labelText: s.labelRequestTitle,
-              hintText: s.hintRequestTitle,
-              border: const OutlineInputBorder(),
+    return ListenableBuilder(
+      listenable: lang,
+      builder: (context, _) {
+        final s = context.strings;
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: buildTaskFlowAppBar(
+            context: context,
+            title: Text(
+              s.taskRequestScreenTitle,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+              ),
             ),
-            textInputAction: TextInputAction.next,
+            actions: const [
+              LanguageMenuButton(),
+            ],
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _site,
-            decoration: InputDecoration(
-              labelText: s.labelRequestSiteName,
-              hintText: s.hintRequestSiteName,
-              border: const OutlineInputBorder(),
-            ),
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _area,
-            decoration: InputDecoration(
-              labelText: s.labelRequestAreaName,
-              hintText: s.hintRequestAreaName,
-              border: const OutlineInputBorder(),
-            ),
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _description,
-            minLines: 3,
-            maxLines: 6,
-            decoration: InputDecoration(
-              labelText: s.labelRequestDescription,
-              hintText: s.hintRequestDescription,
-              alignLabelWithHint: true,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            s.labelRequestPriority,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
+          body: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
             children: [
-              ChoiceChip(
-                label: Text(s.priorityLow),
-                selected: _priorityIndex == 0,
-                onSelected: (_) => setState(() => _priorityIndex = 0),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: TextField(
+                    controller: _title,
+                    decoration: InputDecoration(
+                      labelText: s.labelRequestTitle,
+                      hintText: s.hintRequestTitle,
+                      border: InputBorder.none,
+                    ),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
               ),
-              ChoiceChip(
-                label: Text(s.priorityMedium),
-                selected: _priorityIndex == 1,
-                onSelected: (_) => setState(() => _priorityIndex = 1),
+              const SizedBox(height: 14),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: TextField(
+                    controller: _site,
+                    decoration: InputDecoration(
+                      labelText: s.labelRequestSiteName,
+                      hintText: s.hintRequestSiteName,
+                      border: InputBorder.none,
+                    ),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
               ),
-              ChoiceChip(
-                label: Text(s.priorityHigh),
-                selected: _priorityIndex == 2,
-                onSelected: (_) => setState(() => _priorityIndex = 2),
+              const SizedBox(height: 14),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: TextField(
+                    controller: _area,
+                    decoration: InputDecoration(
+                      labelText: s.labelRequestAreaName,
+                      hintText: s.hintRequestAreaName,
+                      border: InputBorder.none,
+                    ),
+                    textInputAction: TextInputAction.next,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: TextField(
+                    controller: _description,
+                    minLines: 3,
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      labelText: s.labelRequestDescription,
+                      hintText: s.hintRequestDescription,
+                      alignLabelWithHint: true,
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                s.labelRequestPriority,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _PrioritySegmented(
+                colorScheme: colorScheme,
+                theme: theme,
+                s: s,
+                index: _priorityIndex,
+                onChanged: (i) => setState(() => _priorityIndex = i),
+              ),
+              const SizedBox(height: 28),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.22),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _submitting ? null : () => _submit(context),
+                    child: _submitting
+                        ? SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : Text(s.taskRequestSubmitButton),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _submitting ? null : () => _submit(context),
-            child: _submitting
-                ? const SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(s.taskRequestSubmitButton),
-          ),
-        ],
+        );
+      },
+    );
+  }
+}
+
+class _PrioritySegmented extends StatelessWidget {
+  const _PrioritySegmented({
+    required this.colorScheme,
+    required this.theme,
+    required this.s,
+    required this.index,
+    required this.onChanged,
+  });
+
+  final ColorScheme colorScheme;
+  final ThemeData theme;
+  final AppStrings s;
+  final int index;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = [s.priorityLow, s.priorityMedium, s.priorityHigh];
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: List.generate(3, (i) {
+          final sel = index == i;
+          return Expanded(
+            child: Material(
+              color: sel
+                  ? colorScheme.primary.withValues(alpha: 0.2)
+                  : Colors.transparent,
+              child: InkWell(
+                onTap: () => onChanged(i),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Text(
+                    labels[i],
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: sel
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                      fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }

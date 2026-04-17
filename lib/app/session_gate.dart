@@ -7,7 +7,7 @@ import '../core/config/worker_profile_service.dart';
 import '../core/localization/language_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/worker_profile_required_screen.dart';
-import '../features/tasks/presentation/task_list_screen.dart';
+import '../features/tasks/presentation/worker_main_shell.dart';
 
 /// Routes: login → (email session) → verify `profiles` row → task list.
 class SessionGate extends StatefulWidget {
@@ -104,7 +104,7 @@ class _SessionGateState extends State<SessionGate> {
         if (profile == null) {
           return const WorkerProfileRequiredScreen();
         }
-        return const TaskListScreen();
+        return const WorkerMainShell();
       },
     );
   }

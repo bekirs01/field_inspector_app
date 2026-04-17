@@ -24,6 +24,10 @@ class AppStrings {
     required this.workerProfileRequiredTitle,
     required this.workerProfileRequiredMessage,
     required this.tasksAppTitle,
+    required this.navTabTasks,
+    required this.navTabRequest,
+    required this.navTabProfile,
+    required this.profileScreenTitle,
     required this.tasksSectionAssignedRounds,
     required this.statusInProgress,
     required this.statusPending,
@@ -186,6 +190,7 @@ class AppStrings {
     required this.labelEquipmentCode,
     required this.labelAssignmentStatus,
     required this.sectionTaskInstructions,
+    required this.taskDetailInstructionsEmpty,
     required this.tasksRetry,
     required this.workerSectionTitle,
     required this.workerProfileNameLabel,
@@ -230,6 +235,10 @@ class AppStrings {
   final String workerProfileRequiredTitle;
   final String workerProfileRequiredMessage;
   final String tasksAppTitle;
+  final String navTabTasks;
+  final String navTabRequest;
+  final String navTabProfile;
+  final String profileScreenTitle;
   final String tasksSectionAssignedRounds;
   final String statusInProgress;
   final String statusPending;
@@ -392,6 +401,7 @@ class AppStrings {
   final String labelEquipmentCode;
   final String labelAssignmentStatus;
   final String sectionTaskInstructions;
+  final String taskDetailInstructionsEmpty;
   final String tasksRetry;
   final String workerSectionTitle;
   final String workerProfileNameLabel;
@@ -533,6 +543,10 @@ const AppStrings _ru = AppStrings(
   workerProfileRequiredMessage:
       'Для этой учётной записи нет строки в profiles. Администратор должен создать профиль с тем же id, что и в Supabase Auth. Выйдите и войдите снова после исправления.',
   tasksAppTitle: 'Задачи',
+  navTabTasks: 'Задачи',
+  navTabRequest: 'Запрос',
+  navTabProfile: 'Профиль',
+  profileScreenTitle: 'Профиль',
   tasksSectionAssignedRounds: 'Назначенные обходы',
   statusInProgress: 'В процессе',
   statusPending: 'Ожидает',
@@ -707,6 +721,8 @@ const AppStrings _ru = AppStrings(
   labelEquipmentCode: 'Код оборудования',
   labelAssignmentStatus: 'Статус назначения',
   sectionTaskInstructions: 'Инструкции',
+  taskDetailInstructionsEmpty:
+      'Дополнительных указаний нет. Следуйте стандартной процедуре обхода.',
   tasksRetry: 'Повторить',
   workerSectionTitle: 'Исполнитель',
   workerProfileNameLabel: 'ФИО',
@@ -756,6 +772,10 @@ const AppStrings _tr = AppStrings(
   workerProfileRequiredMessage:
       'Bu hesap için profiles tablosunda kayıt yok. Yönetici, Supabase Auth ile aynı id’de profil oluşturmalı. Düzeltmeden sonra çıkış yapıp tekrar girin.',
   tasksAppTitle: 'Görevler',
+  navTabTasks: 'Görevler',
+  navTabRequest: 'Talep',
+  navTabProfile: 'Profil',
+  profileScreenTitle: 'Profil',
   tasksSectionAssignedRounds: 'Atanmış görevler',
   statusInProgress: 'Devam ediyor',
   statusPending: 'Bekliyor',
@@ -930,6 +950,8 @@ const AppStrings _tr = AppStrings(
   labelEquipmentCode: 'Ekipman kodu',
   labelAssignmentStatus: 'Atama durumu',
   sectionTaskInstructions: 'Talimatlar',
+  taskDetailInstructionsEmpty:
+      'Ek talimat yok. Standart tur prosedürünü uygulayın.',
   tasksRetry: 'Yenile',
   workerSectionTitle: 'İşçi',
   workerProfileNameLabel: 'Ad soyad',
@@ -979,6 +1001,10 @@ const AppStrings _en = AppStrings(
   workerProfileRequiredMessage:
       'There is no profiles row for this account. An admin must create a profile with the same id as in Supabase Auth. Sign out and try again after it is fixed.',
   tasksAppTitle: 'Tasks',
+  navTabTasks: 'Tasks',
+  navTabRequest: 'Request',
+  navTabProfile: 'Profile',
+  profileScreenTitle: 'Profile',
   tasksSectionAssignedRounds: 'Assigned tasks',
   statusInProgress: 'In progress',
   statusPending: 'Pending',
@@ -1153,6 +1179,8 @@ const AppStrings _en = AppStrings(
   labelEquipmentCode: 'Equipment code',
   labelAssignmentStatus: 'Assignment status',
   sectionTaskInstructions: 'Instructions',
+  taskDetailInstructionsEmpty:
+      'No additional instructions. Follow the standard round procedure.',
   tasksRetry: 'Retry',
   workerSectionTitle: 'Worker',
   workerProfileNameLabel: 'Name',

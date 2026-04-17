@@ -5,7 +5,8 @@ import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
-import 'task_list_screen.dart';
+import 'widgets/task_flow_visual.dart';
+import 'worker_main_shell.dart';
 
 class CompletedTaskReportScreen extends StatelessWidget {
   const CompletedTaskReportScreen({
@@ -18,7 +19,7 @@ class CompletedTaskReportScreen extends StatelessWidget {
   void _backToTasks(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
-        builder: (context) => const TaskListScreen(),
+        builder: (context) => const WorkerMainShell(),
       ),
       (route) => route.isFirst,
     );
@@ -34,7 +35,8 @@ class CompletedTaskReportScreen extends StatelessWidget {
 
     if (snap == null) {
       return Scaffold(
-        appBar: AppBar(
+        appBar: buildTaskFlowAppBar(
+          context: context,
           title: Text(s.completedReportAppTitle),
           actions: const [
             LanguageMenuButton(),
@@ -58,7 +60,8 @@ class CompletedTaskReportScreen extends StatelessWidget {
     final items = session.items;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: buildTaskFlowAppBar(
+        context: context,
         title: Text(s.completedReportAppTitle),
         actions: const [
           LanguageMenuButton(),
@@ -69,11 +72,11 @@ class CompletedTaskReportScreen extends StatelessWidget {
         children: [
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              padding: const EdgeInsets.fromLTRB(18, 6, 18, 12),
               children: [
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -167,28 +170,44 @@ class CompletedTaskReportScreen extends StatelessWidget {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.14),
+                                  ),
+                                  child: Text(
+                                    '${i + 1}',
+                                    style: theme.textTheme.labelLarge?.copyWith(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    '${i + 1}. ${items[i].equipmentName}',
+                                    items[i].equipmentName,
                                     style:
                                         theme.textTheme.titleSmall?.copyWith(
                                       color: colorScheme.onSurface,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  i < snap.itemHasIssue.length &&
+                                TaskFlowStatusPill(
+                                  label: i < snap.itemHasIssue.length &&
                                           snap.itemHasIssue[i]
                                       ? s.routeStatusHasIssue
                                       : s.statusCompleted,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: i < snap.itemHasIssue.length &&
-                                            snap.itemHasIssue[i]
-                                        ? colorScheme.error
-                                        : colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  accent: i < snap.itemHasIssue.length &&
+                                          snap.itemHasIssue[i]
+                                      ? colorScheme.error
+                                      : colorScheme.primary,
                                 ),
                               ],
                             ),
@@ -246,7 +265,7 @@ class CompletedTaskReportScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
             child: FilledButton(
               onPressed: () => _backToTasks(context),
               child: Text(s.summaryBackToTasksButton),
