@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
-import '../../../core/localization/demo_task_public_state.dart'
-    show DemoTaskPublicState, demoStateFromAssignmentExecution;
+import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../../inspection/presentation/inspection_route_screen.dart';
@@ -15,9 +14,14 @@ class TaskDetailScreen extends StatelessWidget {
   const TaskDetailScreen({
     super.key,
     required this.session,
+    this.reviewOnly = false,
   });
 
   final InspectorTaskSession session;
+
+  /// When true (e.g. opened from Archive without a local result snapshot),
+  /// never offers "Start round" — review / view result only.
+  final bool reviewOnly;
 
   void _onStartInspection(BuildContext context) {
     Navigator.of(context).push(
@@ -208,16 +212,14 @@ class TaskDetailScreen extends StatelessWidget {
                         top: false,
                         child: _PrimaryActionBlock(
                           colorScheme: colorScheme,
-                          child: done != null
-                              ? FilledButton(
-                                  onPressed: () => _onOpenResult(context),
-                                  child: Text(s.taskOpenResultButton),
-                                )
-                              : FilledButton(
-                                  onPressed: () =>
-                                      _onStartInspection(context),
-                                  child: Text(s.startRoundButton),
-                                ),
+                          child: _buildPrimaryAction(
+                            context: context,
+                            s: s,
+                            theme: theme,
+                            colorScheme: colorScheme,
+                            done: done,
+                            effective: effective,
+                          ),
                         ),
                       ),
                     ),
@@ -225,6 +227,60 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
               );
       },
+    );
+  }
+
+  Widget _buildPrimaryAction({
+    required BuildContext context,
+    required AppStrings s,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    required CompletedTaskDemoSnapshot? done,
+    required DemoTaskPublicState effective,
+  }) {
+    if (reviewOnly) {
+      if (done != null) {
+        return FilledButton(
+          onPressed: () => _onOpenResult(context),
+          child: Text(s.taskOpenResultButton),
+        );
+      }
+      if (effective == DemoTaskPublicState.completed ||
+          effective == DemoTaskPublicState.completedWithIssues) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            s.archiveReviewNoLocalSnapshot,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.45,
+            ),
+          ),
+        );
+      }
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Text(
+          s.archiveReviewNoLocalSnapshot,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            height: 1.45,
+          ),
+        ),
+      );
+    }
+
+    if (done != null) {
+      return FilledButton(
+        onPressed: () => _onOpenResult(context),
+        child: Text(s.taskOpenResultButton),
+      );
+    }
+    return FilledButton(
+      onPressed: () => _onStartInspection(context),
+      child: Text(s.startRoundButton),
     );
   }
 }

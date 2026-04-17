@@ -11,7 +11,6 @@ import '../../../core/config/worker_identity.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/subtle_snowfall_background.dart';
 import '../../tasks/presentation/worker_main_shell.dart';
 
 ThemeData _loginTheme(ThemeData parent) {
@@ -178,24 +177,15 @@ class _LoginScreenState extends State<LoginScreen> {
               systemNavigationBarIconBrightness: Brightness.light,
             ),
             child: Scaffold(
-              backgroundColor: kAppCanvas,
-              body: Stack(
-                fit: StackFit.expand,
-                children: [
-                  const Positioned.fill(
-                    child: SubtleSnowfallBackground(
-                      flakeCount: 76,
-                      intensity: 0.95,
-                    ),
-                  ),
-                  SafeArea(
-                    child: ListenableBuilder(
-                      listenable: lang,
-                      builder: (context, _) {
-                        final s = context.strings;
-                        final anon = WorkerIdentity.hasAnonymousSession();
+              backgroundColor: Colors.transparent,
+              body: SafeArea(
+                child: ListenableBuilder(
+                  listenable: lang,
+                  builder: (context, _) {
+                    final s = context.strings;
+                    final anon = WorkerIdentity.hasAnonymousSession();
 
-                        return SingleChildScrollView(
+                    return SingleChildScrollView(
                           padding: const EdgeInsets.symmetric(horizontal: 22),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -443,8 +433,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                ],
-              ),
             ),
           );
         },

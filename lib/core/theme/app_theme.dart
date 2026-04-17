@@ -39,7 +39,8 @@ ThemeData buildAppTheme() {
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: scheme,
-    scaffoldBackgroundColor: kAppCanvas,
+    // Transparent so global [SubtleSnowfallBackground] shows through body gaps.
+    scaffoldBackgroundColor: Colors.transparent,
     splashColor: scheme.primary.withValues(alpha: 0.08),
     highlightColor: scheme.primary.withValues(alpha: 0.06),
     cardTheme: CardThemeData(

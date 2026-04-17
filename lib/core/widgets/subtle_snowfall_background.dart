@@ -59,15 +59,15 @@ class _SubtleSnowfallBackgroundState extends State<SubtleSnowfallBackground>
       (_) => _Flake(
         xNorm: r.nextDouble(),
         phase: r.nextDouble(),
-        speed: 0.11 + r.nextDouble() * 0.22,
-        radius: 0.65 + r.nextDouble() * 1.35,
-        opacity: (0.035 + r.nextDouble() * 0.065) * widget.intensity,
+        speed: 0.15 + r.nextDouble() * 0.26,
+        radius: 0.85 + r.nextDouble() * 1.55,
+        opacity: (0.056 + r.nextDouble() * 0.088) * widget.intensity,
         wobbleSeed: r.nextDouble() * math.pi * 2,
       ),
     );
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 52),
+      duration: const Duration(seconds: 40),
     )..repeat();
   }
 

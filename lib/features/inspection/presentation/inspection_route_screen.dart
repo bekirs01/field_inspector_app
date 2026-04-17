@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/util/mock_uuid.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../../tasks/data/assigned_inspection_task_service.dart';
 import '../../tasks/data/demo_task_completion_store.dart';
 import '../../tasks/data/inspector_task_session.dart';
 import '../../tasks/presentation/widgets/task_flow_visual.dart';
+import '../data/pending_inspection_store.dart';
+import '../data/remote_send_availability.dart';
 import 'inspection_object_screen.dart';
 import 'inspection_task_summary_screen.dart';
 
@@ -23,14 +26,19 @@ class InspectionRouteScreen extends StatefulWidget {
   State<InspectionRouteScreen> createState() => _InspectionRouteScreenState();
 }
 
-class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
+class _InspectionRouteScreenState extends State<InspectionRouteScreen>
+    with WidgetsBindingObserver {
   late List<_RouteSlotState> _slotStates;
+  late List<int> _photosPerSlot;
+  late List<int> _audioPerSlot;
+  late List<bool> _slotAwaitingRemoteSync;
   int _photosRunningTotal = 0;
   int _audioRunningTotal = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final key = widget.session.storeKey;
     DemoTaskCompletionStore.instance.markRouteStarted(key);
     unawaited(
@@ -39,10 +47,64 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
         remoteTaskId: widget.session.remoteTaskId,
       ),
     );
+    final n = widget.session.routeItemCount;
     _slotStates = List<_RouteSlotState>.filled(
-      widget.session.routeItemCount,
+      n,
       _RouteSlotState.pending,
     );
+    _photosPerSlot = List<int>.filled(n, 0);
+    _audioPerSlot = List<int>.filled(n, 0);
+    _slotAwaitingRemoteSync = List<bool>.filled(n, false);
+    unawaited(flushPendingInspectionSubmissions());
+    unawaited(_refreshAwaitingSyncFromStore());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(flushPendingInspectionSubmissions());
+      unawaited(_refreshAwaitingSyncFromStore());
+    }
+  }
+
+  String _taskIdForPendingMatch() {
+    final sess = widget.session;
+    if (sess.isRemote && (sess.remoteTaskId ?? '').isNotEmpty) {
+      return sess.remoteTaskId!;
+    }
+    final m = sess.mockTaskIndex ?? 0;
+    return mockUuidFromSeed('task|$m');
+  }
+
+  Future<void> _refreshAwaitingSyncFromStore() async {
+    final records = await PendingInspectionStore.instance.loadAll();
+    final taskId = _taskIdForPendingMatch();
+    if (!mounted) return;
+    final next = List<bool>.filled(_slotAwaitingRemoteSync.length, false);
+    for (final p in records) {
+      if (p.taskId != taskId) continue;
+      final idx = widget.session.items.indexWhere((e) => e.id == p.equipmentId);
+      if (idx >= 0 && idx < next.length) {
+        next[idx] = true;
+      }
+    }
+    setState(() {
+      _slotAwaitingRemoteSync = next;
+    });
+  }
+
+  void _applyObjectResult(int index, InspectionObjectResult result) {
+    if (index < 0 || index >= _photosPerSlot.length) return;
+    _photosPerSlot[index] = result.photoCount;
+    _audioPerSlot[index] = result.audioCount;
+    _photosRunningTotal = _photosPerSlot.fold<int>(0, (a, b) => a + b);
+    _audioRunningTotal = _audioPerSlot.fold<int>(0, (a, b) => a + b);
   }
 
   int? _firstPendingIndex() {
@@ -74,6 +136,8 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
       itemHasIssue: flags,
       totalPhotosSubmitted: _photosRunningTotal,
       totalAudioClipsSubmitted: _audioRunningTotal,
+      itemPhotoCounts: List<int>.from(_photosPerSlot),
+      itemAudioCounts: List<int>.from(_audioPerSlot),
     );
     await AssignedInspectionTaskService.completeAssignmentAndTask(
       assignmentId: widget.session.remoteAssignmentId,
@@ -106,12 +170,13 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
 
     if (!mounted || result == null) return;
     setState(() {
-      _photosRunningTotal += result.photoCount;
-      _audioRunningTotal += result.audioCount;
+      _applyObjectResult(index, result);
+      _slotAwaitingRemoteSync[index] = result.pendingRemoteSync;
       _slotStates[index] = result.hadDefect
           ? _RouteSlotState.completedWithIssue
           : _RouteSlotState.completed;
     });
+    unawaited(_refreshAwaitingSyncFromStore());
     unawaited(
       AssignedInspectionTaskService.touchAssignmentProgress(
         widget.session.remoteAssignmentId,
@@ -133,8 +198,12 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
   String _badgeText(AppStrings s, int index) {
     switch (_slotStates[index]) {
       case _RouteSlotState.completed:
+        if (_slotAwaitingRemoteSync[index]) return s.routeBadgeAwaitingSync;
         return s.statusCompleted;
       case _RouteSlotState.completedWithIssue:
+        if (_slotAwaitingRemoteSync[index]) {
+          return '${s.routeStatusHasIssue} · ${s.routeBadgeAwaitingSync}';
+        }
         return s.routeStatusHasIssue;
       case _RouteSlotState.pending:
         final first = _firstPendingIndex();
@@ -146,6 +215,9 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen> {
   Color _badgeColor(ColorScheme colorScheme, int index) {
     switch (_slotStates[index]) {
       case _RouteSlotState.completed:
+        if (_slotAwaitingRemoteSync[index]) {
+          return colorScheme.tertiary;
+        }
         return colorScheme.primary;
       case _RouteSlotState.completedWithIssue:
         return colorScheme.error;

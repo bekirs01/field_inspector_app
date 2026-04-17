@@ -27,6 +27,18 @@ class AppStrings {
     required this.navTabTasks,
     required this.navTabRequest,
     required this.navTabProfile,
+    required this.navTabArchive,
+    required this.archiveAppBarTitle,
+    required this.archiveSectionHeader,
+    required this.archiveEmptyTitle,
+    required this.archiveEmptySubtitle,
+    required this.archiveLabelCompletedOn,
+    required this.archiveLabelFinalStatus,
+    required this.archiveLabelDuration,
+    required this.archiveOpenResultHint,
+    required this.archiveOpenReviewHint,
+    required this.archiveReviewNoLocalSnapshot,
+    required this.tasksAllCompletedSeeArchive,
     required this.profileScreenTitle,
     required this.tasksSectionAssignedRounds,
     required this.statusInProgress,
@@ -97,6 +109,11 @@ class AppStrings {
     required this.noteHint,
     required this.saveLocallyButton,
     required this.completeObjectButton,
+    required this.inspectionSendButton,
+    required this.inspectionSendingLabel,
+    required this.inspectionOfflineQueuedTitle,
+    required this.inspectionOfflineQueuedSubtitle,
+    required this.routeBadgeAwaitingSync,
     required this.snackbarLocalSaveSuccess,
     required this.sectionMeasurements,
     required this.labelMeasurementTemperature,
@@ -211,6 +228,43 @@ class AppStrings {
     required this.taskRequestErrorNoWorker,
     required this.taskRequestErrorNotReady,
     required this.taskRequestErrorInsert,
+    required this.inspectionObjectEditTitle,
+    required this.editResultBannerHint,
+    required this.summaryEditResultButton,
+    required this.editResultPickObjectTitle,
+    required this.editResultNoCachedState,
+    required this.taskRequestSectionBasic,
+    required this.taskRequestSectionEquipment,
+    required this.taskRequestSectionProblem,
+    required this.labelRequestShift,
+    required this.hintRequestShift,
+    required this.labelRequestIssueSummary,
+    required this.hintRequestIssueSummary,
+    required this.labelRequestDetailedDescription,
+    required this.hintRequestDetailedDescription,
+    required this.labelRequestEquipmentName,
+    required this.hintRequestEquipmentName,
+    required this.labelRequestEquipmentLocation,
+    required this.hintRequestEquipmentLocation,
+    required this.labelRequestEquipmentCode,
+    required this.hintRequestEquipmentCode,
+    required this.labelRequestPreferredDueDate,
+    required this.hintRequestPreferredDueDateOptional,
+    required this.labelRequestType,
+    required this.requestTypeInspection,
+    required this.requestTypeMaintenance,
+    required this.requestTypeDefect,
+    required this.requestTypeRepair,
+    required this.taskRequestSelectDueDate,
+    required this.taskRequestClearDueDate,
+    required this.taskRequestValidationNeedIssueOrDetail,
+    required this.taskRequestEquipmentLoading,
+    required this.taskRequestEquipmentLoadFailed,
+    required this.taskRequestEquipmentEmpty,
+    required this.taskRequestValidationNeedEquipment,
+    required this.taskRequestEquipmentSectionSubtitle,
+    required this.taskRequestEquipmentListHeading,
+    required this.taskRequestDescriptionMultipleLocationsNote,
     required this.labelTaskDuration,
   });
 
@@ -238,6 +292,18 @@ class AppStrings {
   final String navTabTasks;
   final String navTabRequest;
   final String navTabProfile;
+  final String navTabArchive;
+  final String archiveAppBarTitle;
+  final String archiveSectionHeader;
+  final String archiveEmptyTitle;
+  final String archiveEmptySubtitle;
+  final String archiveLabelCompletedOn;
+  final String archiveLabelFinalStatus;
+  final String archiveLabelDuration;
+  final String archiveOpenResultHint;
+  final String archiveOpenReviewHint;
+  final String archiveReviewNoLocalSnapshot;
+  final String tasksAllCompletedSeeArchive;
   final String profileScreenTitle;
   final String tasksSectionAssignedRounds;
   final String statusInProgress;
@@ -308,6 +374,11 @@ class AppStrings {
   final String noteHint;
   final String saveLocallyButton;
   final String completeObjectButton;
+  final String inspectionSendButton;
+  final String inspectionSendingLabel;
+  final String inspectionOfflineQueuedTitle;
+  final String inspectionOfflineQueuedSubtitle;
+  final String routeBadgeAwaitingSync;
   final String snackbarLocalSaveSuccess;
   final String sectionMeasurements;
   final String labelMeasurementTemperature;
@@ -422,7 +493,55 @@ class AppStrings {
   final String taskRequestErrorNoWorker;
   final String taskRequestErrorNotReady;
   final String taskRequestErrorInsert;
+  final String inspectionObjectEditTitle;
+  final String editResultBannerHint;
+  final String summaryEditResultButton;
+  final String editResultPickObjectTitle;
+  final String editResultNoCachedState;
+  final String taskRequestSectionBasic;
+  final String taskRequestSectionEquipment;
+  final String taskRequestSectionProblem;
+  final String labelRequestShift;
+  final String hintRequestShift;
+  final String labelRequestIssueSummary;
+  final String hintRequestIssueSummary;
+  final String labelRequestDetailedDescription;
+  final String hintRequestDetailedDescription;
+  final String labelRequestEquipmentName;
+  final String hintRequestEquipmentName;
+  final String labelRequestEquipmentLocation;
+  final String hintRequestEquipmentLocation;
+  final String labelRequestEquipmentCode;
+  final String hintRequestEquipmentCode;
+  final String labelRequestPreferredDueDate;
+  final String hintRequestPreferredDueDateOptional;
+  final String labelRequestType;
+  final String requestTypeInspection;
+  final String requestTypeMaintenance;
+  final String requestTypeDefect;
+  final String requestTypeRepair;
+  final String taskRequestSelectDueDate;
+  final String taskRequestClearDueDate;
+  final String taskRequestValidationNeedIssueOrDetail;
+  final String taskRequestEquipmentLoading;
+  final String taskRequestEquipmentLoadFailed;
+  final String taskRequestEquipmentEmpty;
+  final String taskRequestValidationNeedEquipment;
+  final String taskRequestEquipmentSectionSubtitle;
+  final String taskRequestEquipmentListHeading;
+  final String taskRequestDescriptionMultipleLocationsNote;
   final String labelTaskDuration;
+
+  String taskRequestAutoTitleInspection(int equipmentCount) {
+    switch (language) {
+      case AppLanguage.ru:
+        return 'Осмотр: $equipmentCount ед. оборудования';
+      case AppLanguage.tr:
+        return 'Muayene: $equipmentCount ekipman';
+      case AppLanguage.en:
+        return 'Inspection: $equipmentCount unit(s)';
+    }
+  }
 
   String taskDurationMinutesValue(int minutes) {
     switch (language) {
@@ -432,6 +551,17 @@ class AppStrings {
         return '$minutes dk';
       case AppLanguage.en:
         return '$minutes min';
+    }
+  }
+
+  String archiveCountSummary(int count) {
+    switch (language) {
+      case AppLanguage.ru:
+        return 'В архиве: $count';
+      case AppLanguage.tr:
+        return 'Arşivde: $count';
+      case AppLanguage.en:
+        return 'In archive: $count';
     }
   }
 
@@ -546,6 +676,21 @@ const AppStrings _ru = AppStrings(
   navTabTasks: 'Задачи',
   navTabRequest: 'Запрос',
   navTabProfile: 'Профиль',
+  navTabArchive: 'Архив',
+  archiveAppBarTitle: 'Архив',
+  archiveSectionHeader: 'Архивные задачи',
+  archiveEmptyTitle: 'Архив пуст',
+  archiveEmptySubtitle:
+      'Завершённые обходы появятся здесь после выполнения.',
+  archiveLabelCompletedOn: 'Завершено',
+  archiveLabelFinalStatus: 'Итоговый статус',
+  archiveLabelDuration: 'Длительность',
+  archiveOpenResultHint: 'Открыть отчёт',
+  archiveOpenReviewHint: 'Просмотр',
+  archiveReviewNoLocalSnapshot:
+      'Подробный отчёт на этом устройстве недоступен. Доступны сведения о задаче и маршруте.',
+  tasksAllCompletedSeeArchive:
+      'Все назначенные обходы завершены. Откройте вкладку «Архив», чтобы просмотреть их.',
   profileScreenTitle: 'Профиль',
   tasksSectionAssignedRounds: 'Назначенные обходы',
   statusInProgress: 'В процессе',
@@ -618,6 +763,12 @@ const AppStrings _ru = AppStrings(
   noteHint: 'Добавьте комментарий',
   saveLocallyButton: 'Сохранить локально',
   completeObjectButton: 'Завершить объект',
+  inspectionSendButton: 'Отправить',
+  inspectionSendingLabel: 'Отправка…',
+  inspectionOfflineQueuedTitle: 'Нет сети. Сохранено локально',
+  inspectionOfflineQueuedSubtitle:
+      'Отправится автоматически при появлении связи',
+  routeBadgeAwaitingSync: 'Ожидает отправки',
   snackbarLocalSaveSuccess: 'Данные сохранены локально',
   sectionMeasurements: 'Показания',
   labelMeasurementTemperature: 'Температура',
@@ -743,6 +894,48 @@ const AppStrings _ru = AppStrings(
   taskRequestErrorNoWorker: 'Нет учётной записи исполнителя',
   taskRequestErrorNotReady: 'Сервер недоступен',
   taskRequestErrorInsert: 'Не удалось отправить запрос',
+  inspectionObjectEditTitle: 'Редактирование результата',
+  editResultBannerHint:
+      'Вы редактируете ранее отправленный результат. Изменения будут сохранены как новая версия отчёта после отправки.',
+  summaryEditResultButton: 'Редактировать результат',
+  editResultPickObjectTitle: 'Какой объект изменить?',
+  editResultNoCachedState:
+      'Нет сохранённых данных для редактирования (сессия сброшена или файлы удалены). Пройдите обход снова.',
+  taskRequestSectionBasic: 'Основное',
+  taskRequestSectionEquipment: 'Оборудование',
+  taskRequestSectionProblem: 'Запрос / проблема',
+  labelRequestShift: 'Смена',
+  hintRequestShift: 'Например, смена А, ночная',
+  labelRequestIssueSummary: 'Кратко о проблеме',
+  hintRequestIssueSummary: 'Одна строка: что не так или что нужно',
+  labelRequestDetailedDescription: 'Подробное описание',
+  hintRequestDetailedDescription: 'Детали, обстоятельства, что сделать',
+  labelRequestEquipmentName: 'Название оборудования',
+  hintRequestEquipmentName: 'Агрегат, узел, линия',
+  labelRequestEquipmentLocation: 'Местоположение',
+  hintRequestEquipmentLocation: 'Цех, этаж, зона',
+  labelRequestEquipmentCode: 'Код / инв. номер (необязательно)',
+  hintRequestEquipmentCode: 'Если известен',
+  labelRequestPreferredDueDate: 'Желаемый срок',
+  hintRequestPreferredDueDateOptional: 'Необязательно',
+  labelRequestType: 'Тип запроса',
+  requestTypeInspection: 'Обход / осмотр',
+  requestTypeMaintenance: 'Обслуживание',
+  requestTypeDefect: 'Дефект',
+  requestTypeRepair: 'Ремонт',
+  taskRequestSelectDueDate: 'Выбрать дату',
+  taskRequestClearDueDate: 'Сбросить дату',
+  taskRequestValidationNeedIssueOrDetail:
+      'Укажите краткое описание проблемы или подробности',
+  taskRequestEquipmentLoading: 'Загрузка объектов…',
+  taskRequestEquipmentLoadFailed: 'Не удалось загрузить дерево оборудования',
+  taskRequestEquipmentEmpty: 'Нет активных узлов. Обратитесь к администратору.',
+  taskRequestValidationNeedEquipment: 'Выберите хотя бы одну единицу оборудования',
+  taskRequestEquipmentSectionSubtitle:
+      'Иерархия как на странице «Объекты»: отметьте нужные единицы.',
+  taskRequestEquipmentListHeading: 'Выбранное оборудование:',
+  taskRequestDescriptionMultipleLocationsNote:
+      'Примечание: выбраны единицы с разных площадок или участков; поля объекта/зоны объединены.',
   labelTaskDuration: 'Длительность выполнения',
 );
 
@@ -775,6 +968,21 @@ const AppStrings _tr = AppStrings(
   navTabTasks: 'Görevler',
   navTabRequest: 'Talep',
   navTabProfile: 'Profil',
+  navTabArchive: 'Arşiv',
+  archiveAppBarTitle: 'Arşiv',
+  archiveSectionHeader: 'Arşivlenen görevler',
+  archiveEmptyTitle: 'Arşiv boş',
+  archiveEmptySubtitle:
+      'Tamamlanan turlar tamamlandıktan sonra burada listelenir.',
+  archiveLabelCompletedOn: 'Tamamlanma',
+  archiveLabelFinalStatus: 'Son durum',
+  archiveLabelDuration: 'Süre',
+  archiveOpenResultHint: 'Raporu aç',
+  archiveOpenReviewHint: 'İncele',
+  archiveReviewNoLocalSnapshot:
+      'Bu cihazda ayrıntılı rapor yok. Görev ve güzergâh bilgileri görüntülenir.',
+  tasksAllCompletedSeeArchive:
+      'Atanan görevlerin tamamı tamamlandı. İncelemek için Arşiv sekmesini açın.',
   profileScreenTitle: 'Profil',
   tasksSectionAssignedRounds: 'Atanmış görevler',
   statusInProgress: 'Devam ediyor',
@@ -847,6 +1055,12 @@ const AppStrings _tr = AppStrings(
   noteHint: 'Not ekleyin',
   saveLocallyButton: 'Yerel kaydet',
   completeObjectButton: 'Ekipmanı tamamla',
+  inspectionSendButton: 'Gönder',
+  inspectionSendingLabel: 'Gönderiliyor…',
+  inspectionOfflineQueuedTitle: 'İnternet yok. Yerel olarak kaydedildi',
+  inspectionOfflineQueuedSubtitle:
+      'Bağlantı gelince otomatik gönderilecek',
+  routeBadgeAwaitingSync: 'Gönderim bekliyor',
   snackbarLocalSaveSuccess: 'Veriler yerel olarak kaydedildi',
   sectionMeasurements: 'Ölçümler',
   labelMeasurementTemperature: 'Sıcaklık',
@@ -972,6 +1186,48 @@ const AppStrings _tr = AppStrings(
   taskRequestErrorNoWorker: 'İşçi oturumu yok',
   taskRequestErrorNotReady: 'Sunucu hazır değil',
   taskRequestErrorInsert: 'Talep gönderilemedi',
+  inspectionObjectEditTitle: 'Nesneyi düzenle',
+  editResultBannerHint:
+      'Daha önce gönderilmiş sonucu düzenliyorsunuz. Gönderdikten sonra rapor yeni bir sürüm olarak kaydedilir.',
+  summaryEditResultButton: 'Sonucu düzenle',
+  editResultPickObjectTitle: 'Hangi nesne düzenlensin?',
+  editResultNoCachedState:
+      'Düzenleme için yerel veri yok (oturum sıfırlandı veya dosyalar silindi). Turu yeniden yapın.',
+  taskRequestSectionBasic: 'Temel bilgi',
+  taskRequestSectionEquipment: 'Ekipman',
+  taskRequestSectionProblem: 'Talep / sorun',
+  labelRequestShift: 'Vardiya',
+  hintRequestShift: 'Örn. vardiya A, gece',
+  labelRequestIssueSummary: 'Kısa özet',
+  hintRequestIssueSummary: 'Tek satır: sorun veya ihtiyaç',
+  labelRequestDetailedDescription: 'Ayrıntılı açıklama',
+  hintRequestDetailedDescription: 'Detaylar, yapılacak iş',
+  labelRequestEquipmentName: 'Ekipman adı',
+  hintRequestEquipmentName: 'Ünite, hat',
+  labelRequestEquipmentLocation: 'Konum',
+  hintRequestEquipmentLocation: 'Tesis, kat, bölge',
+  labelRequestEquipmentCode: 'Kod / envanter no (isteğe bağlı)',
+  hintRequestEquipmentCode: 'Biliniyorsa',
+  labelRequestPreferredDueDate: 'İstenen tarih',
+  hintRequestPreferredDueDateOptional: 'İsteğe bağlı',
+  labelRequestType: 'Talep türü',
+  requestTypeInspection: 'Tur / inceleme',
+  requestTypeMaintenance: 'Bakım',
+  requestTypeDefect: 'Kusur',
+  requestTypeRepair: 'Onarım',
+  taskRequestSelectDueDate: 'Tarih seç',
+  taskRequestClearDueDate: 'Tarihi temizle',
+  taskRequestValidationNeedIssueOrDetail:
+      'Kısa özet veya ayrıntılı açıklama girin',
+  taskRequestEquipmentLoading: 'Nesneler yükleniyor…',
+  taskRequestEquipmentLoadFailed: 'Ekipman ağacı yüklenemedi',
+  taskRequestEquipmentEmpty: 'Aktif düğüm yok. Yöneticiye başvurun.',
+  taskRequestValidationNeedEquipment: 'En az bir ekipman seçin',
+  taskRequestEquipmentSectionSubtitle:
+      '«Nesneler» sayfasındaki gibi hiyerarşi; ihtiyaç duyduklarınızı işaretleyin.',
+  taskRequestEquipmentListHeading: 'Seçilen ekipman:',
+  taskRequestDescriptionMultipleLocationsNote:
+      'Not: farklı sahalardan veya bölgelerden birimler seçildi; alan alanları birleştirildi.',
   labelTaskDuration: 'Gerçekleşme süresi',
 );
 
@@ -1004,6 +1260,21 @@ const AppStrings _en = AppStrings(
   navTabTasks: 'Tasks',
   navTabRequest: 'Request',
   navTabProfile: 'Profile',
+  navTabArchive: 'Archive',
+  archiveAppBarTitle: 'Archive',
+  archiveSectionHeader: 'Archived tasks',
+  archiveEmptyTitle: 'No archived tasks',
+  archiveEmptySubtitle:
+      'Completed rounds will appear here after you finish them.',
+  archiveLabelCompletedOn: 'Completed on',
+  archiveLabelFinalStatus: 'Final status',
+  archiveLabelDuration: 'Duration',
+  archiveOpenResultHint: 'Open report',
+  archiveOpenReviewHint: 'Review',
+  archiveReviewNoLocalSnapshot:
+      'A detailed report is not stored on this device. Task and route details are still available.',
+  tasksAllCompletedSeeArchive:
+      'All assigned tasks are finished. Open the Archive tab to review them.',
   profileScreenTitle: 'Profile',
   tasksSectionAssignedRounds: 'Assigned tasks',
   statusInProgress: 'In progress',
@@ -1076,6 +1347,11 @@ const AppStrings _en = AppStrings(
   noteHint: 'Add a note',
   saveLocallyButton: 'Save locally',
   completeObjectButton: 'Complete object',
+  inspectionSendButton: 'Send',
+  inspectionSendingLabel: 'Sending…',
+  inspectionOfflineQueuedTitle: 'No internet. Saved locally',
+  inspectionOfflineQueuedSubtitle: 'Will send automatically when online',
+  routeBadgeAwaitingSync: 'Awaiting sync',
   snackbarLocalSaveSuccess: 'Data saved locally',
   sectionMeasurements: 'Measurements',
   labelMeasurementTemperature: 'Temperature',
@@ -1201,5 +1477,47 @@ const AppStrings _en = AppStrings(
   taskRequestErrorNoWorker: 'No worker session',
   taskRequestErrorNotReady: 'Server not ready',
   taskRequestErrorInsert: 'Could not submit request',
+  inspectionObjectEditTitle: 'Edit inspection',
+  editResultBannerHint:
+      'You are editing a previously submitted result. Sending saves a new report version.',
+  summaryEditResultButton: 'Edit result',
+  editResultPickObjectTitle: 'Which object should be edited?',
+  editResultNoCachedState:
+      'No saved edit state (session reset or files removed). Complete the route again.',
+  taskRequestSectionBasic: 'Basics',
+  taskRequestSectionEquipment: 'Equipment',
+  taskRequestSectionProblem: 'Request / issue',
+  labelRequestShift: 'Shift',
+  hintRequestShift: 'e.g. Shift A, night',
+  labelRequestIssueSummary: 'Short summary',
+  hintRequestIssueSummary: 'One line: what is wrong or needed',
+  labelRequestDetailedDescription: 'Detailed description',
+  hintRequestDetailedDescription: 'Context and required work',
+  labelRequestEquipmentName: 'Equipment name',
+  hintRequestEquipmentName: 'Unit, skid, line',
+  labelRequestEquipmentLocation: 'Location',
+  hintRequestEquipmentLocation: 'Building, floor, zone',
+  labelRequestEquipmentCode: 'Code / tag (optional)',
+  hintRequestEquipmentCode: 'If known',
+  labelRequestPreferredDueDate: 'Preferred date',
+  hintRequestPreferredDueDateOptional: 'Optional',
+  labelRequestType: 'Request type',
+  requestTypeInspection: 'Inspection round',
+  requestTypeMaintenance: 'Maintenance',
+  requestTypeDefect: 'Defect',
+  requestTypeRepair: 'Repair',
+  taskRequestSelectDueDate: 'Pick date',
+  taskRequestClearDueDate: 'Clear date',
+  taskRequestValidationNeedIssueOrDetail:
+      'Enter a short summary or detailed description',
+  taskRequestEquipmentLoading: 'Loading objects…',
+  taskRequestEquipmentLoadFailed: 'Could not load equipment tree',
+  taskRequestEquipmentEmpty: 'No active nodes. Contact an administrator.',
+  taskRequestValidationNeedEquipment: 'Select at least one equipment item',
+  taskRequestEquipmentSectionSubtitle:
+      'Same hierarchy as «Objects» on the web: check the units you need.',
+  taskRequestEquipmentListHeading: 'Selected equipment:',
+  taskRequestDescriptionMultipleLocationsNote:
+      'Note: items span multiple sites or areas; site/area fields list a combined value.',
   labelTaskDuration: 'Time to complete',
 );

@@ -73,10 +73,18 @@ class FloatingWorkerNavBar extends StatelessWidget {
                         ),
                         Expanded(
                           child: _NavCell(
-                            icon: Icons.person_rounded,
-                            label: s.navTabProfile,
+                            icon: Icons.archive_outlined,
+                            label: s.navTabArchive,
                             selected: currentIndex == 2,
                             onTap: () => onSelect(2),
+                          ),
+                        ),
+                        Expanded(
+                          child: _NavCell(
+                            icon: Icons.person_rounded,
+                            label: s.navTabProfile,
+                            selected: currentIndex == 3,
+                            onTap: () => onSelect(3),
                           ),
                         ),
                       ],

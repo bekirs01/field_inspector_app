@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,9 +10,11 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
+import '../../inspection/data/remote_send_availability.dart';
 import '../data/assigned_inspection_task_service.dart';
 import '../data/demo_task_completion_store.dart';
 import '../data/inspector_task_session.dart';
+import '../data/task_archive_support.dart';
 import 'task_detail_screen.dart';
 import 'widgets/task_flow_visual.dart';
 
@@ -56,6 +60,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Future<_TaskListPageData> _loadPage() async {
     final load = await AssignedInspectionTaskService.loadAssignedBundles();
     final profile = await WorkerProfileService.fetchCurrentProfile();
+    unawaited(flushPendingInspectionSubmissions());
     return _TaskListPageData(load: load, profile: profile);
   }
 
@@ -227,22 +232,47 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       }
 
                       if (hasRealTasks) {
+                        final activeReal = realSessions
+                            .where(
+                              (session) => !taskSessionIsArchived(
+                                session: session,
+                                store: store,
+                              ),
+                            )
+                            .toList();
                         children.addAll([
                           const SizedBox(height: 20),
                           _SectionHeader(text: sNow.tasksSectionAssignedRounds),
                           const SizedBox(height: 12),
-                          ...realSessions.map(
-                            (session) => Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: _TaskListCard(
-                                session: session,
-                                theme: theme,
-                                colorScheme: colorScheme,
-                                s: sNow,
-                                store: store,
+                          if (activeReal.isEmpty)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 22,
+                                ),
+                                child: Text(
+                                  sNow.tasksAllCompletedSeeArchive,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            ...activeReal.map(
+                              (session) => Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: _TaskListCard(
+                                  session: session,
+                                  theme: theme,
+                                  colorScheme: colorScheme,
+                                  s: sNow,
+                                  store: store,
+                                ),
                               ),
                             ),
-                          ),
                         ]);
                       }
 
@@ -299,7 +329,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       }
 
                       if (showDemoSection) {
-                        final demoSessions = _demoSessions(sNow);
+                        final demoSessions = _demoSessions(sNow)
+                            .where(
+                              (session) => !taskSessionIsArchived(
+                                session: session,
+                                store: store,
+                              ),
+                            )
+                            .toList();
                         children.addAll([
                           const SizedBox(height: 28),
                           Divider(
@@ -461,20 +498,16 @@ class _WorkerContextCard extends StatelessWidget {
               letterSpacing: -0.3,
             ),
           ),
-          if (p.displayCodeOrUsername.isNotEmpty) ...[
-            const SizedBox(height: 10),
+          if (p.username.trim().isNotEmpty &&
+              p.fullName.trim().isNotEmpty &&
+              p.username.trim().toLowerCase() !=
+                  p.fullName.trim().toLowerCase()) ...[
+            const SizedBox(height: 8),
             Text(
-              s.workerProfileCodeLabel,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              p.displayCodeOrUsername,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.92),
-                fontWeight: FontWeight.w500,
+              p.username.trim(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.82),
+                letterSpacing: 0.2,
               ),
             ),
           ],

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/subtle_snowfall_background.dart';
 
 /// Task list / detail use the global dark theme; this only ensures no drift.
 ThemeData taskFlowScreenTheme(ThemeData parent) => parent;
@@ -26,7 +25,7 @@ PreferredSizeWidget buildTaskFlowAppBar({
   );
 }
 
-/// Particle layer + child. Same stable canvas color as cards (no gradient).
+/// Snow is drawn once at app level ([MaterialApp.builder]); this only hosts [child].
 class TaskFlowSnowStack extends StatelessWidget {
   const TaskFlowSnowStack({
     super.key,
@@ -36,20 +35,7 @@ class TaskFlowSnowStack extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        const Positioned.fill(
-          child: SubtleSnowfallBackground(
-            flakeCount: 64,
-            intensity: 0.88,
-          ),
-        ),
-        child,
-      ],
-    );
-  }
+  Widget build(BuildContext context) => child;
 }
 
 /// Soft status pill for task cards / hero summary.

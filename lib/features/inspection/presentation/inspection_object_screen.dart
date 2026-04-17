@@ -11,18 +11,25 @@ import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../../../core/util/mock_uuid.dart';
 import '../../tasks/data/inspector_task_session.dart';
+import '../data/inspection_last_submit_cache.dart';
+import '../data/inspection_object_resume_state.dart';
+import '../data/inspection_queue_policy.dart';
 import '../data/inspection_save_failure.dart';
 import '../data/inspection_supabase_service.dart';
+import '../data/pending_inspection_store.dart';
+import '../data/remote_send_availability.dart';
 
 class InspectionObjectScreen extends StatefulWidget {
   const InspectionObjectScreen({
     super.key,
     required this.session,
     required this.routeItemIndex,
+    this.initialResume,
   });
 
   final InspectorTaskSession session;
   final int routeItemIndex;
+  final InspectionObjectResumeState? initialResume;
 
   @override
   State<InspectionObjectScreen> createState() => _InspectionObjectScreenState();
@@ -34,12 +41,16 @@ class InspectionObjectResult {
     required this.routeItemIndex,
     this.photoCount = 0,
     this.audioCount = 0,
+    this.pendingRemoteSync = false,
   });
 
   final bool hadDefect;
   final int routeItemIndex;
   final int photoCount;
   final int audioCount;
+
+  /// True when the inspection was stored for automatic upload (offline / transport).
+  final bool pendingRemoteSync;
 }
 
 class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
@@ -77,7 +88,6 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
   String? _voiceFilePath;
 
   bool _isSaving = false;
-  int _localDraftRevision = 0;
 
   static const _numericKeyboard = TextInputType.numberWithOptions(
     decimal: true,
@@ -116,6 +126,38 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
   String _nonEmptyOr(String value, String fallback) {
     final t = value.trim();
     return t.isEmpty ? fallback : value;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.initialResume;
+    if (r == null) return;
+    final n = _checklist.length;
+    for (var i = 0; i < n && i < r.checklist.length; i++) {
+      _checklist[i] = r.checklist[i];
+    }
+    _temperatureController.text = r.temperatureText;
+    _pressureController.text = r.pressureText;
+    _vibrationController.text = r.vibrationText;
+    _noteController.text = r.comment;
+    _defectFound = r.defectFound;
+    _severityIndex = r.severityIndex.clamp(0, 2);
+    _defectDescriptionController.text =
+        r.defectFound ? r.defectDescription : '';
+    for (final path in r.photoPaths) {
+      if (_photos.length >= _maxPhotos) break;
+      final trimmed = path.trim();
+      if (trimmed.isEmpty) continue;
+      final f = File(trimmed);
+      if (f.existsSync()) {
+        _photos.add(XFile(trimmed));
+      }
+    }
+    final ap = r.audioPath?.trim();
+    if (ap != null && ap.isNotEmpty && File(ap).existsSync()) {
+      _voiceFilePath = ap;
+    }
   }
 
   InspectorRouteItemRow _displayItemForUi(AppStrings s) {
@@ -318,14 +360,69 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     });
   }
 
-  void _onSaveLocally(BuildContext context) {
-    final s = context.strings;
-    setState(() {
-      _localDraftRevision++;
-    });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(s.snackbarLocalSaveSuccess)));
+  void _showOfflineQueuedSnackBar(AppStrings s, ScaffoldMessengerState m) {
+    m.showSnackBar(
+      SnackBar(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(s.inspectionOfflineQueuedTitle),
+            const SizedBox(height: 4),
+            Text(
+              s.inspectionOfflineQueuedSubtitle,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _persistQueuedAndPop({
+    required BuildContext context,
+    required AppStrings s,
+    required ScaffoldMessengerState messenger,
+    required String taskId,
+    required String equipmentId,
+    required List<Map<String, dynamic>> checklistForDb,
+    required Map<String, dynamic> measurementsJson,
+    required String defectDescription,
+    required String defectPriority,
+    required List<XFile> photos,
+    required String? audioPathForUpload,
+  }) async {
+    try {
+      await PendingInspectionStore.instance.enqueueFromScreenState(
+        taskId: taskId,
+        equipmentId: equipmentId,
+        checklist: checklistForDb,
+        measurements: measurementsJson,
+        comment: _noteController.text,
+        defectFound: _defectFound,
+        defectDescription: defectDescription,
+        defectPriority: defectPriority,
+        photos: photos,
+        audioFilePath: audioPathForUpload,
+      );
+    } catch (e, st) {
+      debugPrint('[InspectionSubmit] FAIL enqueue local $e\n$st');
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(s.errorSaveFailed)));
+      return;
+    }
+    if (!context.mounted) return;
+    unawaited(flushPendingInspectionSubmissions());
+    _showOfflineQueuedSnackBar(s, messenger);
+    Navigator.of(context).pop(
+      InspectionObjectResult(
+        hadDefect: _defectFound,
+        routeItemIndex: widget.routeItemIndex,
+        photoCount: photos.length,
+        audioCount: audioPathForUpload != null ? 1 : 0,
+        pendingRemoteSync: true,
+      ),
+    );
   }
 
   String _userMessageForSaveFailure(AppStrings s, InspectionSaveFailure f) {
@@ -368,7 +465,7 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     }
   }
 
-  Future<void> _onComplete(BuildContext context) async {
+  Future<void> _onSend(BuildContext context) async {
     if (_isSaving) return;
     final s = context.strings;
     final messenger = ScaffoldMessenger.of(context);
@@ -512,8 +609,8 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     final supabaseReady = InspectionSupabaseService.isSupabaseClientReady();
     final sessionPresent = InspectionSupabaseService.authSessionPresent();
     debugPrint(
-      '[InspectionSubmit] preRemoteSummary taskId=$taskId '
-      'equipmentId=$equipmentId draftRevision=$_localDraftRevision '
+      '[InspectionSubmit] preSendSummary taskId=$taskId '
+      'equipmentId=$equipmentId '
       'checklist=$checklistForDb measurements=$measurementsJson '
       'defect={found:$_defectFound, description:$defectDescription, priority:${_defectFound ? defectPriority : "low"}} '
       'photoCount=${photos.length} audioPath=${audioPathForUpload ?? "null"} '
@@ -522,7 +619,30 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
 
     setState(() => _isSaving = true);
     try {
-      debugPrint('[InspectionSubmit] remoteFlowStart completeObjectButton');
+      final onlineHint = await quickInternetLookupHint();
+      if (!supabaseReady || !onlineHint) {
+        debugPrint(
+          '[InspectionSubmit] queue path supabaseReady=$supabaseReady '
+          'onlineHint=$onlineHint',
+        );
+        if (!context.mounted) return;
+        await _persistQueuedAndPop(
+          context: context,
+          s: s,
+          messenger: messenger,
+          taskId: taskId,
+          equipmentId: equipmentId,
+          checklistForDb: checklistForDb,
+          measurementsJson: measurementsJson,
+          defectDescription: defectDescription,
+          defectPriority: defectPriority,
+          photos: photos,
+          audioPathForUpload: audioPathForUpload,
+        );
+        return;
+      }
+
+      debugPrint('[InspectionSubmit] remoteFlowStart sendPrimary');
       await InspectionSupabaseService.instance.saveInspectionCompletion(
         taskId: taskId,
         equipmentId: equipmentId,
@@ -536,6 +656,22 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
         audioFilePath: audioPathForUpload,
       );
       if (!context.mounted) return;
+      InspectionLastSubmitCache.instance.put(
+        storeKey: widget.session.storeKey,
+        routeItemIndex: widget.routeItemIndex,
+        state: InspectionObjectResumeState(
+          checklist: List<bool>.from(_checklist),
+          temperatureText: _temperatureController.text,
+          pressureText: _pressureController.text,
+          vibrationText: _vibrationController.text,
+          comment: _noteController.text,
+          defectFound: _defectFound,
+          defectDescription: _defectDescriptionController.text,
+          severityIndex: _severityIndex,
+          photoPaths: photos.map((p) => p.path).toList(),
+          audioPath: audioPathForUpload,
+        ),
+      );
       debugPrint(
         '[InspectionSubmit] step=12_updateRouteProgress ok routeItemIndex=${widget.routeItemIndex}',
       );
@@ -551,13 +687,45 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
     } on InspectionSaveException catch (e, st) {
       debugPrint('[InspectionSubmit] FAIL remote ${e.toString()}\n$st');
       if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(_userMessageForSaveFailure(s, e.failure))),
-      );
+      if (shouldQueueInspectionAfterFailure(e)) {
+        await _persistQueuedAndPop(
+          context: context,
+          s: s,
+          messenger: messenger,
+          taskId: taskId,
+          equipmentId: equipmentId,
+          checklistForDb: checklistForDb,
+          measurementsJson: measurementsJson,
+          defectDescription: defectDescription,
+          defectPriority: defectPriority,
+          photos: photos,
+          audioPathForUpload: audioPathForUpload,
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(content: Text(_userMessageForSaveFailure(s, e.failure))),
+        );
+      }
     } catch (e, st) {
       debugPrint('[InspectionSubmit] FAIL remote unexpected error=$e\n$st');
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(s.errorUnknownSave)));
+      if (inspectionTransportLooksLikely(e)) {
+        await _persistQueuedAndPop(
+          context: context,
+          s: s,
+          messenger: messenger,
+          taskId: taskId,
+          equipmentId: equipmentId,
+          checklistForDb: checklistForDb,
+          measurementsJson: measurementsJson,
+          defectDescription: defectDescription,
+          defectPriority: defectPriority,
+          photos: photos,
+          audioPathForUpload: audioPathForUpload,
+        );
+      } else {
+        messenger.showSnackBar(SnackBar(content: Text(s.errorUnknownSave)));
+      }
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -695,9 +863,12 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
         final item = _displayItemForUi(s);
         final taskTitle = widget.session.title;
 
+        final isEdit = widget.initialResume != null;
         return Scaffold(
           appBar: AppBar(
-            title: Text(s.inspectionObjectAppTitle),
+            title: Text(
+              isEdit ? s.inspectionObjectEditTitle : s.inspectionObjectAppTitle,
+            ),
             actions: const [LanguageMenuButton()],
           ),
           body: Column(
@@ -707,6 +878,23 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   children: [
+                    if (isEdit) ...[
+                      Card(
+                        color: colorScheme.primaryContainer.withValues(
+                          alpha: 0.35,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Text(
+                            s.editResultBannerHint,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (!_routeItemValid) ...[
                       Card(
                         color: colorScheme.errorContainer,
@@ -1136,29 +1324,22 @@ class _InspectionObjectScreenState extends State<InspectionObjectScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: OutlinedButton(
-                  onPressed: _isSaving ? null : () => _onSaveLocally(context),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text(s.saveLocallyButton),
-                ),
-              ),
-              Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 child: FilledButton(
                   onPressed: (_isSaving ||
                           !_routeItemValid ||
                           _isVoiceRecording)
                       ? null
-                      : () => _onComplete(context),
+                      : () => _onSend(context),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   child: _isSaving
-                      ? Text(s.completeObjectInProgress)
-                      : Text(s.completeObjectButton),
+                      ? Text(s.inspectionSendingLabel)
+                      : Text(s.inspectionSendButton),
                 ),
               ),
             ],

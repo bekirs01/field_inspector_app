@@ -7,7 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/language_menu_button.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/subtle_snowfall_background.dart';
 
 /// Shown when the user signed in with email/password but `public.profiles`
 /// has no row for [auth.currentUser.id].
@@ -61,28 +60,19 @@ class WorkerProfileRequiredScreen extends StatelessWidget {
           systemNavigationBarIconBrightness: Brightness.light,
         ),
         child: Scaffold(
-          backgroundColor: kAppCanvas,
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              const Positioned.fill(
-                child: SubtleSnowfallBackground(
-                  flakeCount: 70,
-                  intensity: 0.9,
-                ),
-              ),
-              SafeArea(
-                child: ListenableBuilder(
-                  listenable: lang,
-                  builder: (context, _) {
-                    final s = context.strings;
-                    final t = Theme.of(context);
-                    final cs = t.colorScheme;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 22),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
+          backgroundColor: Colors.transparent,
+          body: SafeArea(
+            child: ListenableBuilder(
+              listenable: lang,
+              builder: (context, _) {
+                final s = context.strings;
+                final t = Theme.of(context);
+                final cs = t.colorScheme;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                           const Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -134,13 +124,11 @@ class WorkerProfileRequiredScreen extends StatelessWidget {
                             child: Text(s.authSignOutButton),
                           ),
                           const SizedBox(height: 24),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
