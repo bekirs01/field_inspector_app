@@ -180,12 +180,23 @@ class TaskChatController extends ChangeNotifier {
             _messages = [..._messages, m];
           } else {
             final old = _messages[idx];
-            if (old.attachments.isEmpty && m.attachments.isNotEmpty) {
-              final copy = List<TaskChatMessageVm>.from(_messages);
-              copy[idx] = m;
-              _messages = copy;
-            }
+            final attById = {
+              for (final a in [...old.attachments, ...m.attachments]) a.id: a,
+            };
+            final copy = List<TaskChatMessageVm>.from(_messages);
+            copy[idx] = m.copyWith(attachments: attById.values.toList());
+            _messages = copy;
           }
+          notifyListeners();
+        },
+        onAttachmentInsert: (messageId, att) {
+          final idx = _messages.indexWhere((x) => x.id == messageId);
+          if (idx < 0) return;
+          final old = _messages[idx];
+          if (old.attachments.any((a) => a.id == att.id)) return;
+          final copy = List<TaskChatMessageVm>.from(_messages);
+          copy[idx] = old.copyWith(attachments: [...old.attachments, att]);
+          _messages = copy;
           notifyListeners();
         },
       );
@@ -269,7 +280,7 @@ class TaskChatController extends ChangeNotifier {
         final synced =
             await TaskChatService.fetchMessages(tid).timeout(_networkTimeout);
         if (synced.any((x) => x.id == m.id)) {
-          _messages = synced;
+          _messages = TaskChatService.mergeFetchedMessages(_messages, synced);
         } else {
           debugPrint(
             '[TaskChatController] post-send list has no id=${m.id} (read RLS or replication lag)',
@@ -363,7 +374,7 @@ class TaskChatController extends ChangeNotifier {
         final synced =
             await TaskChatService.fetchMessages(tid).timeout(_networkTimeout);
         if (synced.any((x) => x.id == m.id)) {
-          _messages = synced;
+          _messages = TaskChatService.mergeFetchedMessages(_messages, synced);
         }
       } catch (e, st) {
         debugPrint('[TaskChatController] post-send file fetchMessages $e\n$st');

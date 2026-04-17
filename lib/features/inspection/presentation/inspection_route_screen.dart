@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/util/mock_uuid.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../tasks/data/assigned_inspection_task_service.dart';
@@ -146,7 +147,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen>
     );
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
+      AppPageRoute<void>(
         builder: (context) => InspectionTaskSummaryScreen(
           session: widget.session,
           itemHasIssue: flags,
@@ -159,7 +160,7 @@ class _InspectionRouteScreenState extends State<InspectionRouteScreen>
     if (index < 0 || index >= _slotStates.length) return;
 
     final result = await Navigator.of(context).push<InspectionObjectResult?>(
-      MaterialPageRoute<InspectionObjectResult?>(
+      AppPageRoute<InspectionObjectResult?>(
         builder: (context) => InspectionObjectScreen(
           session: widget.session,
           routeItemIndex: index,

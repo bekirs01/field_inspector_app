@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../navigation/app_page_route.dart';
+
 /// Stable dark canvas — no top-to-bottom blue gradients; same family as cards.
 const Color kAppCanvas = Color(0xFF0B0E14);
 const Color kAppSurface = Color(0xFF161B22);
@@ -39,6 +41,7 @@ ThemeData buildAppTheme() {
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: scheme,
+    pageTransitionsTheme: buildInstantPageTransitionsTheme(),
     // Transparent so global [SubtleSnowfallBackground] shows through body gaps.
     scaffoldBackgroundColor: Colors.transparent,
     splashColor: scheme.primary.withValues(alpha: 0.08),

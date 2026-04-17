@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/config/worker_identity.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
@@ -223,13 +224,13 @@ class _WorkerArchiveTabScreenState extends State<WorkerArchiveTabScreen> {
     final snap = store.completedSnapshot(session.storeKey);
     if (snap != null) {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(
+        AppPageRoute<void>(
           builder: (context) => CompletedTaskReportScreen(session: session),
         ),
       );
     } else {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(
+        AppPageRoute<void>(
           builder: (context) =>
               TaskDetailScreen(session: session, reviewOnly: true),
         ),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/config/worker_identity.dart';
 import '../../../core/config/worker_profile_service.dart';
 import '../../../core/localization/app_strings.dart';
@@ -341,15 +342,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       tooltip: s.qrScanActionTooltip,
                       onPressed: () {
                         Navigator.of(context).push<void>(
-                          PageRouteBuilder<void>(
-                            pageBuilder: (context, animation, secondary) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: const QrScanScreen(),
-                              );
-                            },
-                            transitionDuration:
-                                const Duration(milliseconds: 280),
+                          AppPageRoute<void>(
+                            builder: (context) => const QrScanScreen(),
                           ),
                         );
                       },
@@ -737,7 +731,7 @@ class _TaskListCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute<void>(
+            AppPageRoute<void>(
               builder: (context) => TaskDetailScreen(session: session),
             ),
           );

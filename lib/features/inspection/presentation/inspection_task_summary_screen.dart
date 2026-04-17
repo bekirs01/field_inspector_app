@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/language_controller.dart';
+import '../../../core/navigation/app_page_route.dart';
 import '../../tasks/data/demo_task_completion_store.dart';
 import '../../tasks/data/inspector_task_session.dart';
 import '../../tasks/presentation/widgets/task_flow_visual.dart';
@@ -20,7 +21,7 @@ class InspectionTaskSummaryScreen extends StatelessWidget {
 
   void _backToTasks(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
+      AppPageRoute<void>(
         builder: (context) => const WorkerMainShell(),
       ),
       (route) => route.isFirst,

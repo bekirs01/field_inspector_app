@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../inspection/presentation/inspection_route_screen.dart';
@@ -26,7 +27,7 @@ class TaskDetailScreen extends StatelessWidget {
 
   void _onStartInspection(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      AppPageRoute<void>(
         builder: (context) => InspectionRouteScreen(session: session),
       ),
     );
@@ -34,7 +35,7 @@ class TaskDetailScreen extends StatelessWidget {
 
   void _onOpenResult(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      AppPageRoute<void>(
         builder: (context) => CompletedTaskReportScreen(session: session),
       ),
     );
@@ -120,7 +121,7 @@ class TaskDetailScreen extends StatelessWidget {
                                 ),
                                 onPressed: () {
                                   Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
+                                    AppPageRoute<void>(
                                       builder: (context) => RedAlertScreen(
                                         prefillSession: session,
                                       ),

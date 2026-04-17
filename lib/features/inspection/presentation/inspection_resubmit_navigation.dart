@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/navigation/app_page_route.dart';
 import '../../tasks/data/demo_task_completion_store.dart';
 import '../../tasks/data/inspector_task_session.dart';
 import '../data/inspection_last_submit_cache.dart';
@@ -23,7 +24,7 @@ Future<InspectionObjectResult?> pushInspectionResubmit({
     return null;
   }
   return Navigator.of(context).push<InspectionObjectResult?>(
-    MaterialPageRoute<InspectionObjectResult?>(
+    AppPageRoute<InspectionObjectResult?>(
       builder: (context) => InspectionObjectScreen(
         session: session,
         routeItemIndex: routeItemIndex,

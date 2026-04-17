@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/localization/app_language.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/language_controller.dart';
@@ -381,7 +382,7 @@ class _TaskRequestCreateScreenState extends State<TaskRequestCreateScreen> {
                   ? null
                   : () {
                       Navigator.of(context).push(
-                        MaterialPageRoute<void>(
+                        AppPageRoute<void>(
                           builder: (context) => const RedAlertScreen(),
                         ),
                       );

@@ -557,36 +557,89 @@ class TaskChatService {
     }
   }
 
+  /// Reads first non-empty string among [keys] (PostgREST / legacy column names).
+  static String? _rowString(Map<String, dynamic> row, List<String> keys) {
+    for (final k in keys) {
+      final v = row[k];
+      if (v == null) continue;
+      final s = v.toString().trim();
+      if (s.isNotEmpty) return s;
+    }
+    return null;
+  }
+
+  static String? _fileNameFromStoragePath(String path) {
+    final i = path.lastIndexOf('/');
+    if (i < 0 || i >= path.length - 1) return null;
+    final s = path.substring(i + 1).trim();
+    return s.isEmpty ? null : s;
+  }
+
   static TaskChatAttachmentVm? attachmentFromRow(Map<String, dynamic> row) {
     try {
-      final id = row['id']?.toString();
-      final messageId = row['message_id']?.toString();
-      final path = row['storage_path']?.toString();
-      final name = row['file_name']?.toString();
+      final id = _rowString(row, const ['id']);
+      final messageId = _rowString(row, const ['message_id', 'messageId']);
+      var path = _rowString(
+        row,
+        const ['storage_path', 'storagePath', 'path', 'object_path'],
+      );
+      var name = _rowString(
+        row,
+        const [
+          'file_name',
+          'fileName',
+          'filename',
+          'name',
+          'original_filename',
+        ],
+      );
+      if (path != null && (name == null || name.isEmpty)) {
+        name = _fileNameFromStoragePath(path);
+      }
       if (id == null ||
           id.isEmpty ||
           messageId == null ||
+          messageId.isEmpty ||
           path == null ||
           path.isEmpty ||
-          name == null) {
+          name == null ||
+          name.isEmpty) {
         return null;
       }
-      final mime = row['mime_type']?.toString();
-      final bucketRaw = row['storage_bucket']?.toString();
+      final mime = _rowString(row, const ['mime_type', 'mimeType', 'content_type']);
+      final bucketRaw = _rowString(row, const ['storage_bucket', 'storageBucket', 'bucket']);
       int? size;
-      final sb = row['size_bytes'];
+      final sb = row['size_bytes'] ?? row['sizeBytes'];
       if (sb is num) size = sb.toInt();
       return TaskChatAttachmentVm(
         id: id,
         storagePath: path,
         fileName: name,
-        mimeType: mime?.isEmpty ?? true ? null : mime,
+        mimeType: mime,
         sizeBytes: size,
-        storageBucket: bucketRaw?.isEmpty ?? true ? null : bucketRaw,
+        storageBucket: bucketRaw,
       );
     } catch (_) {
       return null;
     }
+  }
+
+  /// After [fetchMessages], keep attachment metadata we already had when the
+  /// server list comes back empty for that row (RLS/cache lag / column quirks).
+  static List<TaskChatMessageVm> mergeFetchedMessages(
+    List<TaskChatMessageVm> previous,
+    List<TaskChatMessageVm> fetched,
+  ) {
+    if (fetched.isEmpty) return previous;
+    final prevById = {for (final m in previous) m.id: m};
+    return [
+      for (final n in fetched)
+        n.attachments.isNotEmpty
+            ? n
+            : ((prevById[n.id]?.attachments.isNotEmpty ?? false)
+                ? n.copyWith(attachments: prevById[n.id]!.attachments)
+                : n),
+    ];
   }
 
   static Future<List<TaskChatMessageVm>> fetchMessages(String threadId) async {
@@ -619,7 +672,7 @@ class TaskChatService {
     for (final raw in attList) {
       if (raw is! Map<String, dynamic>) continue;
       final a = attachmentFromRow(raw);
-      final mid = raw['message_id']?.toString();
+      final mid = _rowString(raw, const ['message_id', 'messageId']);
       if (a == null || mid == null) continue;
       byMessage.putIfAbsent(mid, () => []).add(a);
     }
@@ -634,6 +687,8 @@ class TaskChatService {
   static RealtimeChannel subscribeToNewMessages({
     required String threadId,
     required void Function(TaskChatMessageVm message) onInsert,
+    void Function(String messageId, TaskChatAttachmentVm attachment)?
+        onAttachmentInsert,
   }) {
     final channel = _client.channel('task_chat_$threadId');
     try {
@@ -652,12 +707,42 @@ class TaskChatService {
               final m = messageFromRow(row);
               if (m == null) return;
               try {
-                final withAtt = await _fetchAttachmentsForMessage(m);
+                var withAtt = await _fetchAttachmentsForMessage(m);
+                if (withAtt.attachments.isEmpty) {
+                  await Future<void>.delayed(const Duration(milliseconds: 350));
+                  withAtt = await _fetchAttachmentsForMessage(m);
+                }
                 onInsert(withAtt);
               } catch (e, st) {
                 debugPrint('[TaskChat] realtime enrich failed $e\n$st');
                 onInsert(m);
               }
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'task_chat_attachments',
+            callback: (payload) async {
+              if (onAttachmentInsert == null) return;
+              final raw = payload.newRecord;
+              final row = Map<String, dynamic>.from(raw);
+              final att = attachmentFromRow(row);
+              final mid = _rowString(row, const ['message_id', 'messageId']);
+              if (att == null || mid == null) return;
+              try {
+                final msg = await _client
+                    .from('task_chat_messages')
+                    .select('id')
+                    .eq('id', mid)
+                    .eq('thread_id', threadId)
+                    .maybeSingle();
+                if (msg == null) return;
+              } catch (e, st) {
+                debugPrint('[TaskChat] attachment thread check $e\n$st');
+                return;
+              }
+              onAttachmentInsert(mid, att);
             },
           )
           .subscribe();

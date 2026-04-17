@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/config/app_env.dart';
 import '../../../core/config/worker_identity.dart';
 import '../../../core/localization/language_controller.dart';
@@ -150,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _openDevBypass(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (context) => const WorkerMainShell()),
+      AppPageRoute<void>(builder: (context) => const WorkerMainShell()),
     );
   }
 

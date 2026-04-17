@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/config/worker_identity.dart';
 import '../../../core/localization/language_controller.dart';
 import '../data/inspector_task_session.dart';
@@ -43,7 +44,7 @@ Future<void> openTaskChatForSession({
     return;
   }
   await Navigator.of(context).push<void>(
-    MaterialPageRoute<void>(
+    AppPageRoute<void>(
       builder: (ctx) => TaskChatScreen(session: session),
     ),
   );

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
@@ -338,7 +339,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
     if (picked == null || !mounted) return;
     final s = context.strings;
     final sent = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
+      AppPageRoute<bool>(
         fullscreenDialog: true,
         builder: (ctx) => TaskChatImageComposePage(
           imageFile: picked.file,
@@ -501,12 +502,15 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                 color: colorScheme.primary,
               ),
               Expanded(
-                child: TextField(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 120),
+                  child: TextField(
                   controller: _textController,
                   minLines: 1,
                   maxLines: 4,
                   textInputAction: TextInputAction.newline,
                   enabled: interactionEnabled && !_chat.sending,
+                  scrollPhysics: const BouncingScrollPhysics(),
                   decoration: InputDecoration(
                     hintText: s.taskChatMessageHint,
                     filled: true,
@@ -524,6 +528,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                       ),
                     ),
                   ),
+                ),
                 ),
               ),
               const SizedBox(width: 4),
@@ -571,6 +576,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
             phase == TaskChatPhase.ready && _chat.canShowComposer;
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: theme.scaffoldBackgroundColor,
           appBar: buildTaskFlowAppBar(
             context: context,
@@ -702,12 +708,18 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                           ),
                         )
                       : ListView.builder(
+                          key: ValueKey<String>(
+                            _chat.threadId ?? 'task_chat_msgs',
+                          ),
+                          primary: false,
                           controller: _scrollController,
                           padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                           itemCount: _chat.messages.length,
                           itemBuilder: (context, i) {
+                            final msg = _chat.messages[i];
                             return _MessageBubble(
-                              message: _chat.messages[i],
+                              key: ValueKey<String>('msg_${msg.id}'),
+                              message: msg,
                               strings: s,
                               theme: theme,
                               colorScheme: colorScheme,
@@ -822,6 +834,7 @@ class _TaskChatCompactContextBar extends StatelessWidget {
 
 class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
+    super.key,
     required this.message,
     required this.strings,
     required this.theme,
@@ -877,8 +890,7 @@ class _MessageBubble extends StatelessWidget {
         alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxBubbleW),
-          child: IntrinsicWidth(
-            child: DecoratedBox(
+          child: DecoratedBox(
               decoration: BoxDecoration(
                 color: fill,
                 borderRadius: BorderRadius.only(
@@ -892,41 +904,43 @@ class _MessageBubble extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            _roleCaption(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    SizedBox(
+                      width: double.infinity,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _roleCaption(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.78),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.12,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _timeLabel(),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.78),
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: -0.12,
+                                  .withValues(alpha: 0.55),
+                              fontSize:
+                                  (theme.textTheme.labelSmall?.fontSize ?? 11) *
+                                      0.92,
                               height: 1.1,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          _timeLabel(),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.55),
-                            fontSize:
-                                (theme.textTheme.labelSmall?.fontSize ?? 11) *
-                                    0.92,
-                            height: 1.1,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     if (hasText) ...[
                       const SizedBox(height: 5),
@@ -947,6 +961,9 @@ class _MessageBubble extends StatelessWidget {
                           top: (hasText || i > 0) ? 8 : 4,
                         ),
                         child: _AttachmentPreview(
+                          key: ValueKey<String>(
+                            'att_${message.id}_${attachments[i].id}',
+                          ),
                           attachment: attachments[i],
                           strings: strings,
                           theme: theme,
@@ -958,7 +975,6 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ),
-          ),
         ),
       ),
     );
@@ -967,6 +983,7 @@ class _MessageBubble extends StatelessWidget {
 
 class _AttachmentPreview extends StatelessWidget {
   const _AttachmentPreview({
+    super.key,
     required this.attachment,
     required this.strings,
     required this.theme,
@@ -1045,47 +1062,10 @@ class _AttachmentPreview extends StatelessWidget {
       return constrainChild(
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: FutureBuilder<String>(
-            future: TaskChatService.createSignedUrl(
-            attachment.storagePath,
-            bucket: attachment.storageBucket,
-          ),
-            builder: (context, snapshot) {
-              if (snapshot.hasError || !snapshot.hasData) {
-                return Container(
-                  height: 120,
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  color: colorScheme.surfaceContainerHigh,
-                  child: snapshot.hasError
-                      ? Icon(Icons.broken_image_outlined, color: colorScheme.error)
-                      : const SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                );
-              }
-              return GestureDetector(
-                onTap: _open,
-                child: Image.network(
-                  snapshot.data!,
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (ctx, child, prog) {
-                    if (prog == null) return child;
-                    return Container(
-                      height: 200,
-                      width: double.infinity,
-                      alignment: Alignment.center,
-                      color: colorScheme.surfaceContainerHigh,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    );
-                  },
-                ),
-              );
-            },
+          child: _ChatSignedAttachmentImage(
+            attachment: attachment,
+            colorScheme: colorScheme,
+            onOpen: _open,
           ),
         ),
       );
@@ -1141,6 +1121,76 @@ class _AttachmentPreview extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// One signed-URL [Future] per widget instance — avoids new requests every
+/// [ListView] rebuild (less jank / scroll subtree churn).
+class _ChatSignedAttachmentImage extends StatefulWidget {
+  const _ChatSignedAttachmentImage({
+    required this.attachment,
+    required this.colorScheme,
+    required this.onOpen,
+  });
+
+  final TaskChatAttachmentVm attachment;
+  final ColorScheme colorScheme;
+  final VoidCallback onOpen;
+
+  @override
+  State<_ChatSignedAttachmentImage> createState() =>
+      _ChatSignedAttachmentImageState();
+}
+
+class _ChatSignedAttachmentImageState extends State<_ChatSignedAttachmentImage> {
+  late final Future<String> _urlFuture = TaskChatService.createSignedUrl(
+    widget.attachment.storagePath,
+    bucket: widget.attachment.storageBucket,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = widget.colorScheme;
+    return FutureBuilder<String>(
+      future: _urlFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError || !snapshot.hasData) {
+          return Container(
+            height: 120,
+            width: double.infinity,
+            alignment: Alignment.center,
+            color: colorScheme.surfaceContainerHigh,
+            child: snapshot.hasError
+                ? Icon(Icons.broken_image_outlined, color: colorScheme.error)
+                : const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+          );
+        }
+        return GestureDetector(
+          onTap: widget.onOpen,
+          child: Image.network(
+            snapshot.data!,
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            loadingBuilder: (ctx, child, prog) {
+              if (prog == null) return child;
+              return Container(
+                height: 200,
+                width: double.infinity,
+                alignment: Alignment.center,
+                color: colorScheme.surfaceContainerHigh,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

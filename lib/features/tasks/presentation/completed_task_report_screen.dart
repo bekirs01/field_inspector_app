@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/navigation/app_page_route.dart';
 import '../../../core/localization/demo_task_public_state.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../inspection/presentation/inspection_resubmit_navigation.dart';
@@ -67,7 +68,7 @@ class CompletedTaskReportScreen extends StatelessWidget {
 
   void _backToTasks(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
+      AppPageRoute<void>(
         builder: (context) => const WorkerMainShell(),
       ),
       (route) => route.isFirst,
